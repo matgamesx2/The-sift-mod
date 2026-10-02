@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "sift",
+  "version": "${version}",
+  "name": "THE SIFT — Experimental Java Mod",
+  "description": "An original fan-made dimension inspired by the Sift. Unofficial, not affiliated with Mojang.",
+  "authors": ["Mathieu"],
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": { "main": ["fr.mathsift.sift.SiftMod"] },
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "~26.3",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
+}
