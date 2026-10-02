@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SS",
+    "SS"
+  ],
+  "key": {
+    "S": "sift:lumen_shard"
+  },
+  "result": {
+    "id": "sift:luminous_relic",
+    "count": 1
+  }
+}
