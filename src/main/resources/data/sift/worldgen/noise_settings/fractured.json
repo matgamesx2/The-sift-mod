@@ -166,12 +166,25 @@
                                   "type": "minecraft:mul",
                                   "left": -1.0,
                                   "right": {
-                                    "type": "minecraft:abs",
-                                    "input": {
-                                      "type": "minecraft:noise",
-                                      "noise": "sift:rift_network",
-                                      "xz_scale": 0.56,
-                                      "y_scale": 0.0
+                                    "type": "minecraft:add",
+                                    "left": {
+                                      "type": "minecraft:abs",
+                                      "input": {
+                                        "type": "minecraft:noise",
+                                        "noise": "sift:rift_network",
+                                        "xz_scale": 0.56,
+                                        "y_scale": 0.0
+                                      }
+                                    },
+                                    "right": {
+                                      "type": "minecraft:mul",
+                                      "left": 0.05,
+                                      "right": {
+                                        "type": "minecraft:noise",
+                                        "noise": "sift:wall_breakup",
+                                        "xz_scale": 0.62,
+                                        "y_scale": 0.5
+                                      }
                                     }
                                   }
                                 }
@@ -321,7 +334,7 @@
                       },
                       "right": {
                         "type": "minecraft:mul",
-                        "left": 0.65,
+                        "left": 2.4,
                         "right": {
                           "type": "minecraft:clamp",
                           "input": {
@@ -395,7 +408,7 @@
                     },
                     "right": {
                       "type": "minecraft:mul",
-                      "left": 0.65,
+                      "left": 2.4,
                       "right": {
                         "type": "minecraft:clamp",
                         "input": {
@@ -469,7 +482,7 @@
                   },
                   "right": {
                     "type": "minecraft:mul",
-                    "left": 0.65,
+                    "left": 2.4,
                     "right": {
                       "type": "minecraft:clamp",
                       "input": {
@@ -543,7 +556,7 @@
                 },
                 "right": {
                   "type": "minecraft:mul",
-                  "left": 0.65,
+                  "left": 2.4,
                   "right": {
                     "type": "minecraft:clamp",
                     "input": {
