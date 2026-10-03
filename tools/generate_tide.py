@@ -65,6 +65,15 @@ q=root/"items/prismatic_tide_bucket.json"
 q.parent.mkdir(parents=True,exist_ok=True)
 q.write_text(json.dumps({"model":{"type":"minecraft:model",
     "model":"sift:item/prismatic_tide_bucket"}},indent=2)+"\n")
+# LiquidBlock is rendered by the fluid renderer, but every block state still
+# needs a baked block model. Empty geometry prevents missing-model warnings.
+for relative,value in (
+    ("blockstates/prismatic_tide_block.json",{"variants":{"":{
+        "model":"sift:block/prismatic_tide_empty"}}}),
+    ("models/block/prismatic_tide_empty.json",{"parent":"minecraft:block/block",
+        "textures":{"particle":"sift:block/prismatic_tide_still"},"elements":[]})):
+    f=root/relative;f.parent.mkdir(parents=True,exist_ok=True)
+    f.write_text(json.dumps(value,indent=2)+"\n")
 for name in ("fr_fr","en_us"):
     f=root/"lang"/(name+".json")
     payload=json.loads(f.read_text(encoding="utf-8"))

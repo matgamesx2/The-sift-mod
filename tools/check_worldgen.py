@@ -55,4 +55,7 @@ for name,height in (("still",4096),("flow",4096),("overlay",128)):
         assert metadata["animation"]["interpolate"]
         assert metadata["animation"]["height"]==128
 assert (assets/"textures/item/prismatic_tide_bucket.png").exists()
+fluidstate=json.loads((assets/"blockstates/prismatic_tide_block.json").read_text())
+assert fluidstate["variants"][""]["model"]=="sift:block/prismatic_tide_empty"
+assert json.loads((assets/"models/block/prismatic_tide_empty.json").read_text())["elements"]==[]
 print("PASS SIFT 0.5.4: animated tide, 2 biomes, branching faults, bounded arches and basin floor")

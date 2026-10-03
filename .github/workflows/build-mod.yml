@@ -45,6 +45,7 @@ jobs:
                                   'net.minecraft.client.renderer.block.FluidModel',
                                   'net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap'):
                           subprocess.run(['javap','-classpath',str(jar),cls],check=False)
+                      subprocess.run(['javap','-c','-classpath',str(jar),'net.minecraft.client.renderer.block.FluidModel$Unbaked'],check=False)
                       raise SystemExit(0)
                   except zipfile.BadZipFile:pass
           PY

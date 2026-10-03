@@ -5,11 +5,14 @@ from pathlib import Path
 from server_smoke_rcon import Rcon
 out=Path('run/visual');out.mkdir(parents=True,exist_ok=True)
 c=Rcon();c.authenticate()
+c.run('Allow offline visual test player','whitelist add SiftVisualTest')
 for attempt in range(180):
     if 'SiftVisualTest' in c.command('list'):break
     log=Path('run/visual/client-console.log').read_text(errors='replace')
     if 'Failed to create backend Vulkan' in log and 'Failed to create backend OpenGL' in log:
         raise RuntimeError('Software graphics backend failed; inspect client-console.log')
+    if attempt in (30,90,179):
+        subprocess.run(['import','-window','root',str(out/(f'00-startup-{attempt}.png'))],timeout=15)
     time.sleep(1)
 else:raise RuntimeError('Client did not join the offline test server')
 player='SiftVisualTest'
@@ -26,7 +29,7 @@ subprocess.run(['xdotool','key','--window',window,'F1'],check=True)
 def capture(name,x,y,z,yaw,pitch):
     c.run('Camera '+name,f'execute in sift:sift run tp {player} {x} {y} {z} {yaw} {pitch}')
     time.sleep(12)
-    subprocess.run(['import','-window',window,str(out/(name+'.png'))],check=True)
+    subprocess.run(['import','-window',window,str(out/(name+'.png'))],check=True,timeout=25)
     print('CLIENT FRAME: '+name,flush=True)
 capture('01-fractured-plateaus',96,160,96,-45,36)
 c.run('Load natural basins','execute in sift:sift run forceload add 0 0 191 191')
@@ -48,7 +51,7 @@ c.run('First-person liquid contact','gamemode creative '+player)
 # HUD on: verifies the blue effect in first-person and the underwater tint.
 subprocess.run(['xdotool','key','--window',window,'F1'],check=True)
 capture('04-submerged-first-person',226.5,146.5,226.5,0,3)
-log=Path('run/logs/latest.log').read_text(errors='replace')
+log=Path('run/visual/client-console.log').read_text(errors='replace')
 bad=[line for line in log.splitlines() if 'sift:' in line and any(t in line.lower() for t in
      ('unable to load','missing model','missing texture','failed to load','exception'))]
 if bad:raise RuntimeError('Client resource errors: '+ '\n'.join(bad))

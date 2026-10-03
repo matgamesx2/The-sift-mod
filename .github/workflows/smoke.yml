@@ -78,7 +78,7 @@ jobs:
         with:
           gradle-version: '9.6.0'
       - name: Install software OpenGL and capture tools
-        run: sudo apt-get update && sudo apt-get install -y xvfb libgl1-mesa-dri mesa-utils mesa-vulkan-drivers vulkan-tools xdotool imagemagick
+        run: sudo apt-get update && sudo apt-get install -y xvfb libgl1-mesa-dri mesa-utils mesa-vulkan-drivers vulkan-tools libflite1 libflite-dev xdotool imagemagick
       - name: Prepare client and server
         run: |
           python3 tools/generate_assets.py
@@ -87,7 +87,7 @@ jobs:
           gradle --no-daemon classes
           mkdir -p run/visual
           echo 'eula=true' > run/eula.txt
-          printf 'online-mode=false\nenforce-secure-profile=false\nenable-rcon=true\nrcon.port=25575\nrcon.password=sift-ci-only\nlevel-seed=42819\nview-distance=7\n' > run/server.properties
+          printf 'online-mode=false\nwhite-list=false\nenforce-secure-profile=false\nenable-rcon=true\nrcon.port=25575\nrcon.password=sift-ci-only\nlevel-seed=42819\nview-distance=7\n' > run/server.properties
           printf 'renderDistance:7\nsimulationDistance:5\nmaxFps:30\nfullscreen:false\nguiScale:2\n' > run/options.txt
       - name: Launch real Minecraft window and verify rendering
         env:
@@ -96,6 +96,7 @@ jobs:
           MESA_GL_VERSION_OVERRIDE: '4.6'
           MESA_GLSL_VERSION_OVERRIDE: '460'
           SDL_VIDEO_DRIVER: x11
+          ALSOFT_DRIVERS: 'null'
         run: |
           Xvfb :99 -screen 0 1280x720x24 -ac +extension GLX +render -noreset > /tmp/xvfb.log 2>&1 &
           sleep 2
@@ -113,7 +114,7 @@ jobs:
           if [ "$ready" -ne 1 ]; then tail -n 100 run/visual/server-console.log; exit 1; fi
           gradle --no-daemon runClient --args='--username SiftVisualTest --width 1280 --height 720 --quickPlayMultiplayer localhost:25565' > run/visual/client-console.log 2>&1 &
           CLIENT_PID=$!
-          python3 tools/client_visual_check.py
+          timeout 330 python3 tools/client_visual_check.py
       - name: Save actual client frames and logs
         if: always()
         uses: actions/upload-artifact@v4
