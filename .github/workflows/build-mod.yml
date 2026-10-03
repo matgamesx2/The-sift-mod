@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths-ignore: ['README.md']
+    paths-ignore: ['README.md', '.github/workflows/smoke.yml', 'tools/server_smoke_rcon.py']
 permissions:
   contents: write
 jobs:

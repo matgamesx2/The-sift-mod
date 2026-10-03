@@ -36,7 +36,7 @@ jobs:
         run: |
           mkdir -p run
           echo "eula=true" > run/eula.txt
-          echo "online-mode=false" > run/server.properties
+          printf "online-mode=false\nenable-rcon=true\nrcon.port=25575\nrcon.password=sift-ci-only\n" > run/server.properties
           gradle --no-daemon runServer --args='nogui' > /tmp/sift-server-stdout.log 2>&1 &
           PID=$!
           ready=0
@@ -50,11 +50,18 @@ jobs:
             fi
             sleep 1
           done
-          tail -n 100 /tmp/sift-server-stdout.log || true
-          if [ -f run/logs/latest.log ]; then tail -n 80 run/logs/latest.log; fi
-          kill "$PID" 2>/dev/null || true
           if [ "$ready" -ne 1 ]; then
+            tail -n 100 /tmp/sift-server-stdout.log || true
+            if [ -f run/logs/latest.log ]; then tail -n 80 run/logs/latest.log; fi
+            kill "$PID" 2>/dev/null || true
             echo "Server did not finish startup. Check errors above." >&2
             exit 1
           fi
-          echo "PASS: headless Minecraft 26.3 server accepted Sift dynamic registry files"
+          python3 tools/server_smoke_rcon.py || {
+            tail -n 100 /tmp/sift-server-stdout.log || true
+            if [ -f run/logs/latest.log ]; then tail -n 80 run/logs/latest.log; fi
+            kill "$PID" 2>/dev/null || true
+            exit 1
+          }
+          kill "$PID" 2>/dev/null || true
+          echo "PASS: Minecraft server accepted Sift registries and generated an actual Sift chunk"
