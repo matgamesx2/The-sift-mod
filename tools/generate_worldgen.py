@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""THE SIFT 0.5.1 dedicated 26.3 world generator.
+"""THE SIFT 0.5.2 dedicated 26.3 world generator.
 The look is an original interpretation of the user-provided Dungeons II references:
 roofless amplified cliffs, elongated deep rifts, unstable ridges and prismatic tide below.
 All files are plain data; no proprietary game assets are copied.
@@ -24,8 +24,8 @@ def fissure(name,width,scale,strength):
     centerline=ab(noise(name,scale,0.0))
     mask=clamp(add(width,mul(-1.0,centerline)),0.0,width)
     return mul(-strength,mask)
-rifts=add(fissure("rift_network",.23,.56,48.0),
-          fissure("rift_branches",.16,.70,37.0))
+rifts=add(fissure("rift_network",.100,.56,90.0),
+          fissure("rift_branches",.072,.70,62.0))
 # Keep high plateaus, but give the fractures priority.
 meadow=mul(.39,noise("meadow_swell",.60,0.0))
 carapace=add(mul(.60,noise("carapace_ridge",.62,0.0)),
@@ -35,7 +35,7 @@ biome_relief={"type":"minecraft:range_choice","input":"minecraft:overworld/tempe
     "when_in_range":meadow,"when_out_of_range":carapace}
 overhang=mul(.74,noise("overhang",.65,.34))
 surface_gradient={"type":"minecraft:gradient","axis":"y","tiling":"clamp_to_edge",
-    "from_coordinate":-64,"to_coordinate":285,"from_value":3.30,"to_value":-4.05}
+    "from_coordinate":-64,"to_coordinate":285,"from_value":4.10,"to_value":-4.05}
 fractured=add(add(surface_gradient,biome_relief),add(rifts,overhang))
 # Solid bed below every trench, open sky above it.
 floor={"type":"minecraft:gradient","axis":"y","tiling":"clamp_to_edge",
@@ -171,4 +171,4 @@ for name,sky,fog,water,features in [
 put("tags/fluid/prismatic_tide.json",{
     "values":["sift:prismatic_tide","sift:flowing_prismatic_tide"]})
 put("function/tide_test.mcfunction",None) if False else None
-print("Generated 0.5.1: connected canyons, solid fracture floor and two biome surfaces")
+print("Generated 0.5.2: connected canyons, solid fracture floor and two biome surfaces")

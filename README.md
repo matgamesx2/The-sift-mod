@@ -44,3 +44,9 @@ DO NOT open existing Sift saves with this major worldgen overhaul. Existing chun
 - Removed vanilla fire ticks, which caused the orange/red burning animation. Contact now deals independent burn damage, emits blue soul flames around the entity, and shows an animated blue first-person screen overlay.
 - **Use a new test world:** Minecraft does not regenerate old chunks when the mod changes its noise rules.
 - GitHub server smoke tests validate world loading; **the canyon shapes and client overlay still require visual testing in Minecraft.**
+
+## 0.5.2 — Balanced fissures
+- Measured 0.5.1 with an actual fixed-seed Minecraft world: an overly broad rift mask removed 52 of 64 sampled columns at Y40. These are *measurement points*, not an estimate of the whole dimension.
+- Reduced both rift widths while increasing their cutting strength so that the center stays deep and edges form sharp cliffs. Rebalanced plateau density upward to keep significant land between rifts.
+- Automated RCON survey now **fails** if the fixed-seed 2D test is overcarved or has no sufficiently high plateaus.
+- Blue flame and pastel fluid fixes from 0.5.1 are retained.

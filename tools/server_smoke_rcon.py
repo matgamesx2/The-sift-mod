@@ -99,6 +99,9 @@ def main():
              "".join("V" if deep[row*8+i] else "#" for i in range(8)),
              "| PLATEAUS", "".join("P" if mid[row*8+i] else "." for i in range(8)),
              flush=True)
+    # The fixed-seed survey must show canyons AND plateaus rather than one empty basin.
+    if not (6<=sum(deep)<=38 and sum(mid)>=20 and sum(high)>=6):
+        raise RuntimeError("Canyon-to-plateau balance failed: revise density masks")
     c.run("Unforce 2D terrain grid","execute in sift:sift run forceload remove 0 0 191 191")
     c.sock.close()
     print("PASS: Sift chunk loaded, custom liquid block placed, chunk released",flush=True)
