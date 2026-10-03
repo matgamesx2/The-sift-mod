@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""THE SIFT 0.5.0 dedicated 26.3 world generator.
+"""THE SIFT 0.5.1 dedicated 26.3 world generator.
 The look is an original interpretation of the user-provided Dungeons II references:
 roofless amplified cliffs, elongated deep rifts, unstable ridges and prismatic tide below.
 All files are plain data; no proprietary game assets are copied.
@@ -19,24 +19,34 @@ def ab(value):return {"type":"minecraft:abs","input":value}
 def clamp(value,low,high):return {"type":"minecraft:clamp","input":value,"min":low,"max":high}
 def gradient():return {"type":"minecraft:gradient","axis":"y","tiling":"clamp_to_edge",
     "from_coordinate":-64,"to_coordinate":280,"from_value":4.2,"to_value":-5.0}
-# Long branching trenches appear where a broad 2D noise field crosses zero;
-# subtracting them from the full vertical density cuts down toward the tide.
-rifts=mul(-14.0,clamp(add(.24,mul(-1.0,ab(noise("rift_network",.54,0.0)))),0.0,.24))
-# Large plateaus, serrated ridges and three-dimensional cliff undercuts.
-meadow=mul(1.45,noise("meadow_swell",.64,0.0))
-carapace=add(mul(1.55,noise("carapace_ridge",.60,0.0)),
-             mul(.72,ab(noise("sharp_cliffs",.83,.10))))
+# Two 2D fracture networks make long connected tectonic rifts instead of rolling mountains.
+def fissure(name,width,scale,strength):
+    centerline=ab(noise(name,scale,0.0))
+    mask=clamp(add(width,mul(-1.0,centerline)),0.0,width)
+    return mul(-strength,mask)
+rifts=add(fissure("rift_network",.23,.56,48.0),
+          fissure("rift_branches",.16,.70,37.0))
+# Keep high plateaus, but give the fractures priority.
+meadow=mul(.39,noise("meadow_swell",.60,0.0))
+carapace=add(mul(.60,noise("carapace_ridge",.62,0.0)),
+             mul(.35,ab(noise("sharp_cliffs",.74,.10))))
 biome_relief={"type":"minecraft:range_choice","input":"minecraft:overworld/temperature",
     "min_inclusive":-1000.0,"max_exclusive":-0.08,
     "when_in_range":meadow,"when_out_of_range":carapace}
-overhang=mul(.88,noise("overhang",.67,.29))
-# Use exposed 26.3 interpolation inside final_density, with strictly negative
-# density at the highest altitude so NO NETHER-LIKE BEDROCK CEILING can form.
+overhang=mul(.74,noise("overhang",.65,.34))
+surface_gradient={"type":"minecraft:gradient","axis":"y","tiling":"clamp_to_edge",
+    "from_coordinate":-64,"to_coordinate":285,"from_value":3.30,"to_value":-4.05}
+fractured=add(add(surface_gradient,biome_relief),add(rifts,overhang))
+# Solid bed below every trench, open sky above it.
+floor={"type":"minecraft:gradient","axis":"y","tiling":"clamp_to_edge",
+       "from_coordinate":-62,"to_coordinate":-39,
+       "from_value":9.0,"to_value":-100.0}
 density={"type":"minecraft:interpolated",
-         "input":add(add(gradient(),biome_relief),add(rifts,overhang)),
+         "input":{"type":"minecraft:max","left":fractured,"right":floor},
          "cell_size_xz":4,"cell_size_y":8}
 for name,octave,amps in [
     ("rift_network",-8,[1.0,.65,.32,.17]),
+    ("rift_branches",-9,[1.0,.58,.31,.16]),
     ("meadow_swell",-7,[1.0,.58,.28]),
     ("carapace_ridge",-6,[1.0,.75,.45]),
     ("sharp_cliffs",-5,[1.0,.55,.30]),
@@ -44,7 +54,7 @@ for name,octave,amps in [
     put(Path("worldgen/noise")/(name+".json"),{
         "base_octave":octave,"octave_count":len(amps),"amplitude_modifiers":amps})
 put("worldgen/noise_settings/fractured.json",{
-    "sea_level":26,"disable_mob_generation":True,"legacy_random_source":False,
+    "sea_level":-23,"disable_mob_generation":True,"legacy_random_source":False,
     "default_block":{"id":"sift:carapace_shale"},
     "default_fluid":{"id":"sift:prismatic_tide_block"},
     "noise":{"height":384,"min_y":-64},
@@ -56,7 +66,7 @@ put("worldgen/noise_settings/fractured.json",{
         "temperature":"minecraft:overworld/temperature",
         "vegetation":"minecraft:overworld/vegetation",
         "final_density":density,
-        "chunk_surface_level":88.0
+        "chunk_surface_level":122.0
     },
     "material_rule":"sift:fractured",
     "spawn_target":[
@@ -161,4 +171,4 @@ for name,sky,fog,water,features in [
 put("tags/fluid/prismatic_tide.json",{
     "values":["sift:prismatic_tide","sift:flowing_prismatic_tide"]})
 put("function/tide_test.mcfunction",None) if False else None
-print("Generated roofless fractured Sift terrain, biome-specific surfaces and 6 decor features")
+print("Generated 0.5.1: connected canyons, solid fracture floor and two biome surfaces")

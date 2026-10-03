@@ -35,3 +35,12 @@ A new **real flowing fluid** is registered as `sift:prismatic_tide` and generate
 - `/locate biome sift:carapace` — locate the second biome (in Sift).
 
 DO NOT open existing Sift saves with this major worldgen overhaul. Existing chunks cannot be regenerated without a new world. This is not yet a 1:1 reconstruction of Dungeons II; the hero biome trees, moving tides, giant fossil structures and blue player-burning overlay are still being developed.
+
+## 0.5.1 — Deep fractures, quieter tides & blue soul burning
+
+- Replaced the mountain-heavy terrain with **two crossing long rift fields** and a reinforced bottom floor.
+- Reduced the prismatic tide level to Y=-23, so it fills crevasse bottoms instead of covering the world in lakes.
+- Changed the fluid textures from 16px checkerboard to seamless, calmer 64px iridescent patterns.
+- Removed vanilla fire ticks, which caused the orange/red burning animation. Contact now deals independent burn damage, emits blue soul flames around the entity, and shows an animated blue first-person screen overlay.
+- **Use a new test world:** Minecraft does not regenerate old chunks when the mod changes its noise rules.
+- GitHub server smoke tests validate world loading; **the canyon shapes and client overlay still require visual testing in Minecraft.**

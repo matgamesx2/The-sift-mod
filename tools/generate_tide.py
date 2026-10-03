@@ -10,15 +10,19 @@ def save_png(path,size,pixel):
     head=struct.pack(">IIBBBBB",size,size,8,6,0,0,0)
     path.write_bytes(b"\x89PNG\r\n\x1a\n"+chunk(b"IHDR",head)+chunk(b"IDAT",zlib.compress(scan,9))+chunk(b"IEND",b""))
 def rainbow(x,y,n):
-    h=((x/n)*0.48+(y/n)*0.57 + .06*math.sin(x*.5+y*.3))%1
-    r,g,b=colorsys.hsv_to_rgb(h,.48,.95)
-    shine=.08*math.sin(.68*x-.39*y)
-    return (int(255*min(1,r+shine)),int(255*min(1,g+shine)),
-            int(255*min(1,b+shine)),205)
+    # Seamless low-saturation color field; avoids checkerboard when tiled.
+    xx=2*math.pi*x/n; yy=2*math.pi*y/n
+    drift=.19*math.sin(xx)+.14*math.cos(yy)+.09*math.sin(xx+yy)
+    hue=(.55+drift+.045*math.cos(xx*2-yy))%1.0
+    r,g,b=colorsys.hsv_to_rgb(hue,.35,.93)
+    pearl=.045*(1.0+math.cos(xx-yy))
+    return (min(255,int(255*(r+pearl))),
+            min(255,int(255*(g+pearl))),
+            min(255,int(255*(b+pearl))),174)
 tex=root/"textures/block"
-save_png(tex/"prismatic_tide_still.png",16,lambda x,y:rainbow(x,y,16))
-save_png(tex/"prismatic_tide_flow.png",32,lambda x,y:rainbow(x,y,32))
-save_png(tex/"prismatic_tide_overlay.png",16,lambda x,y:rainbow(x,y,16))
+save_png(tex/"prismatic_tide_still.png",64,lambda x,y:rainbow(x,y,64))
+save_png(tex/"prismatic_tide_flow.png",64,lambda x,y:rainbow(x,y,64))
+save_png(tex/"prismatic_tide_overlay.png",64,lambda x,y:rainbow(x,y,64))
 def bucket(x,y):
     cx=abs(x-8)
     in_bucket=4<=y<=13 and 2<=x<=13 and (y<7 or cx<=5)

@@ -28,8 +28,8 @@ import net.minecraft.world.level.material.FluidState;
 
 /**
  * Genuine, flowable Sift fluid. The rainbow colors are rendered by the Fabric client
- * and SOUL_FIRE_FLAME particles represent a blue burn at contact. Minecraft's
- * vanilla orange on-screen burning overlay is not recolored yet.
+ * and SOUL_FIRE_FLAME particles create a blue-burning effect. Vanilla fire ticks
+ * would render orange, so blue flames and damage are handled independently.
  */
 public abstract class PrismaticTideFluid extends FlowingFluid {
     @Override public Fluid getSource() { return SiftFluids.STILL; }
@@ -62,13 +62,14 @@ public abstract class PrismaticTideFluid extends FlowingFluid {
     @Override protected void entityInside(Level level, BlockPos pos, Entity entity,
                                           InsideBlockEffectApplier handler) {
         if (!(level instanceof ServerLevel server)) return;
-        if (server.getGameTime() % 8 == 0) {
-            server.sendParticles(ParticleTypes.SOUL_FIRE_FLAME, entity.getX(), entity.getY() + 0.75,
-                entity.getZ(), 5, 0.3, 0.35, 0.3, 0.015);
+        if (server.getGameTime() % 3 == 0) {
+            server.sendParticles(ParticleTypes.SOUL_FIRE_FLAME, entity.getX(),
+                entity.getY() + entity.getBbHeight() * 0.46, entity.getZ(),
+                8, 0.27, entity.getBbHeight() * 0.45, 0.27, 0.027);
         }
         if (server.getGameTime() % 20 == 0 && !entity.fireImmune()) {
-            entity.setRemainingFireTicks(Math.max(entity.getRemainingFireTicks(), 50));
-            entity.hurtServer(server, level.damageSources().magic(), 1.0f);
+            // Real burn damage without vanilla fire ticks (which render red flames).
+            entity.hurtServer(server, level.damageSources().magic(), 2.0f);
         }
     }
     @Override protected int getSlopeFindDistance(LevelReader world) { return 4; }
