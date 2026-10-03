@@ -20,16 +20,15 @@ c.run('Flying camera','gamemode spectator '+player)
 c.run('Daylight','execute in sift:sift run time set 6000')
 c.command('gamerule advance_time false')
 c.command('gamerule do_mob_spawning false')
-# The client must be focused before sending its native screenshot shortcut.
-windows=subprocess.check_output(['xdotool','search','--name','Minecraft']).decode().splitlines()
-if not windows:raise RuntimeError('No Minecraft OpenGL window')
-window=windows[-1]
-subprocess.run(['xdotool','windowfocus',window],check=True)
-subprocess.run(['xdotool','key','--window',window,'F1'],check=True)
+# SDL 3 may leave the X11 WM_NAME empty. Capture the virtual display directly
+# and send keys to its focused game window, avoiding title-dependent discovery.
+time.sleep(3)
+subprocess.run(['import','-window','root',str(out/'00-joined.png')],check=True,timeout=25)
+subprocess.run(['xdotool','key','F1'],check=True)
 def capture(name,x,y,z,yaw,pitch):
     c.run('Camera '+name,f'execute in sift:sift run tp {player} {x} {y} {z} {yaw} {pitch}')
     time.sleep(12)
-    subprocess.run(['import','-window',window,str(out/(name+'.png'))],check=True,timeout=25)
+    subprocess.run(['import','-window','root',str(out/(name+'.png'))],check=True,timeout=25)
     print('CLIENT FRAME: '+name,flush=True)
 capture('01-fractured-plateaus',96,160,96,-45,36)
 c.run('Load natural basins','execute in sift:sift run forceload add 0 0 191 191')
@@ -50,7 +49,7 @@ c.run('Open pool surface','execute in sift:sift run fill 221 150 221 231 150 231
 capture('03-tide-depth',226.5,153,218.5,0,35)
 c.run('First-person liquid contact','gamemode creative '+player)
 # HUD on: verifies the blue effect in first-person and the underwater tint.
-subprocess.run(['xdotool','key','--window',window,'F1'],check=True)
+subprocess.run(['xdotool','key','F1'],check=True)
 capture('04-submerged-first-person',226.5,146.5,226.5,0,3)
 log=Path('run/visual/client-console.log').read_text(errors='replace')
 bad=[line for line in log.splitlines() if 'sift:' in line and any(t in line.lower() for t in
