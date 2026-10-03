@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "sift:block/prismatic_tide_still"
+  },
+  "elements": []
+}
