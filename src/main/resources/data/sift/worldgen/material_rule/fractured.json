@@ -1,0 +1,172 @@
+{
+  "type": "minecraft:sequence",
+  "sequence": [
+    {
+      "type": "minecraft:condition",
+      "if_true": {
+        "type": "minecraft:vertical_gradient",
+        "random_name": "sift:bedrock_floor",
+        "true_at_and_below": {
+          "above_bottom": 0
+        },
+        "false_at_and_above": {
+          "above_bottom": 5
+        }
+      },
+      "then_run": {
+        "type": "minecraft:block",
+        "result_state": {
+          "id": "minecraft:bedrock"
+        }
+      }
+    },
+    {
+      "type": "minecraft:condition",
+      "if_true": {
+        "type": "minecraft:stone_depth",
+        "add_surface_depth": false,
+        "offset": 0,
+        "secondary_depth_range": 0,
+        "surface_type": "floor"
+      },
+      "then_run": {
+        "type": "minecraft:sequence",
+        "sequence": [
+          {
+            "type": "minecraft:condition",
+            "if_true": {
+              "type": "minecraft:biome",
+              "biome_is": "sift:meadows"
+            },
+            "then_run": {
+              "type": "minecraft:sequence",
+              "sequence": [
+                {
+                  "type": "minecraft:condition",
+                  "if_true": {
+                    "type": "minecraft:noise_threshold",
+                    "noise": "minecraft:surface",
+                    "min_threshold": 0.34,
+                    "max_threshold": 10.0
+                  },
+                  "then_run": {
+                    "type": "minecraft:block",
+                    "result_state": {
+                      "id": "sift:meadow_soil"
+                    }
+                  }
+                },
+                {
+                  "type": "minecraft:block",
+                  "result_state": {
+                    "id": "sift:teal_turf"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "type": "minecraft:condition",
+            "if_true": {
+              "type": "minecraft:biome",
+              "biome_is": "sift:carapace"
+            },
+            "then_run": {
+              "type": "minecraft:sequence",
+              "sequence": [
+                {
+                  "type": "minecraft:condition",
+                  "if_true": {
+                    "type": "minecraft:noise_threshold",
+                    "noise": "minecraft:surface",
+                    "min_threshold": 0.2,
+                    "max_threshold": 10.0
+                  },
+                  "then_run": {
+                    "type": "minecraft:block",
+                    "result_state": {
+                      "id": "sift:sift_ochre"
+                    }
+                  }
+                },
+                {
+                  "type": "minecraft:block",
+                  "result_state": {
+                    "id": "sift:carapace_stone"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "minecraft:condition",
+      "if_true": {
+        "type": "minecraft:stone_depth",
+        "add_surface_depth": true,
+        "offset": 3,
+        "secondary_depth_range": 0,
+        "surface_type": "floor"
+      },
+      "then_run": {
+        "type": "minecraft:sequence",
+        "sequence": [
+          {
+            "type": "minecraft:condition",
+            "if_true": {
+              "type": "minecraft:biome",
+              "biome_is": "sift:meadows"
+            },
+            "then_run": {
+              "type": "minecraft:block",
+              "result_state": {
+                "id": "sift:meadow_soil"
+              }
+            }
+          },
+          {
+            "type": "minecraft:condition",
+            "if_true": {
+              "type": "minecraft:biome",
+              "biome_is": "sift:carapace"
+            },
+            "then_run": {
+              "type": "minecraft:block",
+              "result_state": {
+                "id": "sift:carapace_shale"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "minecraft:condition",
+      "if_true": {
+        "type": "minecraft:biome",
+        "biome_is": "sift:meadows"
+      },
+      "then_run": {
+        "type": "minecraft:block",
+        "result_state": {
+          "id": "sift:meadow_soil"
+        }
+      }
+    },
+    {
+      "type": "minecraft:condition",
+      "if_true": {
+        "type": "minecraft:biome",
+        "biome_is": "sift:carapace"
+      },
+      "then_run": {
+        "type": "minecraft:block",
+        "result_state": {
+          "id": "sift:carapace_shale"
+        }
+      }
+    }
+  ]
+}

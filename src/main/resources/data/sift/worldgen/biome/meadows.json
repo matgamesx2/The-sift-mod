@@ -4,9 +4,9 @@
     "minecraft:visual/fog_color": "#b98ac5"
   },
   "carvers": [],
-  "downfall": 0,
+  "downfall": 0.0,
   "effects": {
-    "water_color": "#54cad0",
+    "water_color": "#87daca",
     "grass_color": "#4dc9ac",
     "foliage_color": "#5ab7c8"
   },
@@ -21,7 +21,12 @@
     [],
     [],
     [],
-    []
+    [
+      "sift:scarlet_trees",
+      "sift:meadow_reeds",
+      "sift:scarlet_sprouts",
+      "sift:soul_blooms"
+    ]
   ],
   "has_precipitation": false,
   "temperature": 0.65

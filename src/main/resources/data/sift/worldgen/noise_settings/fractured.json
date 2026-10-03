@@ -1,0 +1,140 @@
+{
+  "sea_level": 26,
+  "disable_mob_generation": true,
+  "legacy_random_source": false,
+  "default_block": {
+    "id": "sift:carapace_shale"
+  },
+  "default_fluid": {
+    "id": "sift:prismatic_tide_block"
+  },
+  "noise": {
+    "height": 384,
+    "min_y": -64
+  },
+  "noise_router": {
+    "continents": "minecraft:overworld/continents",
+    "depth": "minecraft:overworld/depth",
+    "erosion": "minecraft:overworld/erosion",
+    "ridges": "minecraft:overworld/ridges",
+    "temperature": "minecraft:overworld/temperature",
+    "vegetation": "minecraft:overworld/vegetation",
+    "final_density": {
+      "type": "minecraft:interpolated",
+      "input": {
+        "type": "minecraft:add",
+        "left": {
+          "type": "minecraft:add",
+          "left": {
+            "type": "minecraft:gradient",
+            "axis": "y",
+            "tiling": "clamp_to_edge",
+            "from_coordinate": -64,
+            "to_coordinate": 280,
+            "from_value": 4.2,
+            "to_value": -5.0
+          },
+          "right": {
+            "type": "minecraft:range_choice",
+            "input": "minecraft:overworld/temperature",
+            "min_inclusive": -1000.0,
+            "max_exclusive": -0.08,
+            "when_in_range": {
+              "type": "minecraft:mul",
+              "left": 1.45,
+              "right": {
+                "type": "minecraft:noise",
+                "noise": "sift:meadow_swell",
+                "xz_scale": 0.64,
+                "y_scale": 0.0
+              }
+            },
+            "when_out_of_range": {
+              "type": "minecraft:add",
+              "left": {
+                "type": "minecraft:mul",
+                "left": 1.55,
+                "right": {
+                  "type": "minecraft:noise",
+                  "noise": "sift:carapace_ridge",
+                  "xz_scale": 0.6,
+                  "y_scale": 0.0
+                }
+              },
+              "right": {
+                "type": "minecraft:mul",
+                "left": 0.72,
+                "right": {
+                  "type": "minecraft:abs",
+                  "input": {
+                    "type": "minecraft:noise",
+                    "noise": "sift:sharp_cliffs",
+                    "xz_scale": 0.83,
+                    "y_scale": 0.1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "right": {
+          "type": "minecraft:add",
+          "left": {
+            "type": "minecraft:mul",
+            "left": -14.0,
+            "right": {
+              "type": "minecraft:clamp",
+              "input": {
+                "type": "minecraft:add",
+                "left": 0.24,
+                "right": {
+                  "type": "minecraft:mul",
+                  "left": -1.0,
+                  "right": {
+                    "type": "minecraft:abs",
+                    "input": {
+                      "type": "minecraft:noise",
+                      "noise": "sift:rift_network",
+                      "xz_scale": 0.54,
+                      "y_scale": 0.0
+                    }
+                  }
+                }
+              },
+              "min": 0.0,
+              "max": 0.24
+            }
+          },
+          "right": {
+            "type": "minecraft:mul",
+            "left": 0.88,
+            "right": {
+              "type": "minecraft:noise",
+              "noise": "sift:overhang",
+              "xz_scale": 0.67,
+              "y_scale": 0.29
+            }
+          }
+        }
+      },
+      "cell_size_xz": 4,
+      "cell_size_y": 8
+    },
+    "chunk_surface_level": 88.0
+  },
+  "material_rule": "sift:fractured",
+  "spawn_target": [
+    {
+      "minecraft:overworld/temperature": [
+        -0.8,
+        -0.2
+      ]
+    },
+    {
+      "minecraft:overworld/temperature": [
+        0.2,
+        0.8
+      ]
+    }
+  ]
+}

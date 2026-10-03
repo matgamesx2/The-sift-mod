@@ -1,0 +1,39 @@
+{
+  "type": "minecraft:tree",
+  "below_trunk_provider": {
+    "type": "minecraft:simple",
+    "state": {
+      "id": "sift:teal_turf"
+    }
+  },
+  "decorators": [],
+  "foliage_placer": {
+    "type": "minecraft:blob_foliage_placer",
+    "height": 2,
+    "offset": 0,
+    "radius": 3
+  },
+  "foliage_provider": {
+    "type": "minecraft:simple",
+    "state": {
+      "id": "minecraft:red_poplar_leaves"
+    }
+  },
+  "ignore_vines": true,
+  "minimum_size": {
+    "type": "minecraft:two_layers_feature_size",
+    "upper_size": 2
+  },
+  "trunk_placer": {
+    "type": "minecraft:straight_trunk_placer",
+    "base_height": 8,
+    "height_rand_a": 3,
+    "height_rand_b": 2
+  },
+  "trunk_provider": {
+    "type": "minecraft:simple",
+    "state": {
+      "id": "minecraft:crimson_stem"
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "sift:item/prismatic_tide_bucket"
+  }
+}
