@@ -50,6 +50,39 @@ def main():
     c.run("Generate Sift chunk","execute in sift:sift run forceload add 0 0")
     c.run("Place custom tide in Sift","execute in sift:sift run setblock 0 145 0 sift:prismatic_tide_block")
     c.run("Unforce chunk","execute in sift:sift run forceload remove 0 0")
+    # Cross-sectional survey of the actual generated terrain, not a static JSON test.
+    # Two orthogonal strips cross the low-frequency tectonic noise field.
+    c.run("Generate canyon strip X","execute in sift:sift run forceload add 0 0 255 15")
+    c.run("Generate canyon strip Z","execute in sift:sift run forceload add 0 0 15 255")
+    def block_test(x,y,z,block):
+        c.packet(502,2,f"execute in sift:sift if block {x} {y} {z} {block}")
+        for attempt in range(6):
+            rid,kind,msg=c.read()
+            if rid==502:
+                return "Test passed" in msg, msg
+        raise RuntimeError("Survey timeout querying " + str((x,y,z)))
+    points=sorted(set([(x,8) for x in range(24,249,8)] +
+                      [(8,z) for z in range(24,249,8)]))
+    shallow=0; deep_air=0; solid_floor=0; ceiling_air=0
+    strips={"x":[],"z":[]}
+    for x,z in points:
+        is_air,_=block_test(x,40,z,"minecraft:air")
+        if is_air:deep_air+=1
+        surface,_=block_test(x,100,z,"minecraft:air")
+        if not surface:shallow+=1
+        floor,_=block_test(x,-59,z,"minecraft:bedrock")
+        if floor:solid_floor+=1
+        sky,_=block_test(x,310,z,"minecraft:air")
+        if sky:ceiling_air+=1
+        strips["x" if z==8 else "z"].append("V" if is_air else "#")
+    print("TERRAIN SURVEY, actual seed: sampled",len(points),"columns",flush=True)
+    print("TERRAIN SURVEY at Y40: canyon/air",deep_air,"solid",len(points)-deep_air,flush=True)
+    print("TERRAIN SURVEY at Y100: solid plateau",shallow,"air",len(points)-shallow,flush=True)
+    print("TERRAIN SURVEY at Y310: open sky",ceiling_air,flush=True)
+    print("TERRAIN CROSS SECTION X:", "".join(strips["x"]),flush=True)
+    print("TERRAIN CROSS SECTION Z:", "".join(strips["z"]),flush=True)
+    c.run("Unforce canyon strip X","execute in sift:sift run forceload remove 0 0 255 15")
+    c.run("Unforce canyon strip Z","execute in sift:sift run forceload remove 0 0 15 255")
     c.sock.close()
     print("PASS: Sift chunk loaded, custom liquid block placed, chunk released",flush=True)
 if __name__=="__main__":main()
