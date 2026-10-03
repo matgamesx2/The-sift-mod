@@ -65,3 +65,55 @@ jobs:
           }
           kill "$PID" 2>/dev/null || true
           echo "PASS: Minecraft server accepted Sift registries and generated an actual Sift chunk"
+  visual-client:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.6.0'
+      - name: Install software OpenGL and capture tools
+        run: sudo apt-get update && sudo apt-get install -y xvfb libgl1-mesa-dri xdotool imagemagick
+      - name: Prepare client and server
+        run: |
+          python3 tools/generate_assets.py
+          python3 tools/generate_worldgen.py
+          python3 tools/generate_tide.py
+          gradle --no-daemon classes
+          mkdir -p run/visual
+          echo 'eula=true' > run/eula.txt
+          printf 'online-mode=false\nenforce-secure-profile=false\nenable-rcon=true\nrcon.port=25575\nrcon.password=sift-ci-only\nlevel-seed=42819\nview-distance=7\n' > run/server.properties
+          printf 'renderDistance:7\nsimulationDistance:5\nmaxFps:30\nfullscreen:false\nguiScale:2\n' > run/options.txt
+      - name: Launch real Minecraft window and verify rendering
+        env:
+          DISPLAY: ':99'
+          LIBGL_ALWAYS_SOFTWARE: '1'
+        run: |
+          Xvfb :99 -screen 0 1280x720x24 > /tmp/xvfb.log 2>&1 &
+          gradle --no-daemon runServer --args='nogui' > run/visual/server-console.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" "$CLIENT_PID" 2>/dev/null || true' EXIT
+          ready=0
+          for i in $(seq 1 200); do
+            if grep -Fq 'Done (' run/visual/server-console.log; then ready=1; break; fi
+            if ! kill -0 "$SERVER_PID" 2>/dev/null; then break; fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then tail -n 100 run/visual/server-console.log; exit 1; fi
+          gradle --no-daemon runClient --args='--username SiftVisualTest --width 1280 --height 720 --quickPlayMultiplayer localhost:25565' > run/visual/client-console.log 2>&1 &
+          CLIENT_PID=$!
+          python3 tools/client_visual_check.py
+      - name: Save actual client frames and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sift-0.5.4-client-verification
+          path: |
+            run/visual
+            run/logs
+            run/crash-reports

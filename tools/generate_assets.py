@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Generate 21 original low-resolution placeholder textures and Minecraft 26.3 model/data files.
+"""Install authored cohesive Sift textures and Minecraft 26.3 model/data files.
 All generated resources use original palettes. No Mojang or Dungeons assets are redistributed.
 """
 from pathlib import Path
-import json, random, hashlib, struct, zlib
+import json, random, hashlib, struct, zlib, shutil
 root=Path("src/main/resources")
 asset=root/"assets/sift"
 data=root/"data/sift"
@@ -32,24 +32,31 @@ def png(path,pixel):
     hdr=struct.pack(">IIBBBBB",16,16,8,6,0,0,0)
     path.write_bytes(b"\x89PNG\r\n\x1a\n"+chunk(b"IHDR",hdr)+chunk(b"IDAT",zlib.compress(raw,9))+chunk(b"IEND",b""))
 for name,(c1,c2) in {**palette,**items}.items():
-    rng=random.Random(int(hashlib.sha256(name.encode()).hexdigest()[:12],16))
-    pixels=[(rgb(c1) if rng.randrange(5) else rgb(c2))+b"\xff" for _ in range(256)]
-    if name in flora or name in items:
-        for y in range(16):
-            for x in range(16):
-                if name in flora:
-                    visible=(abs(x-8)<2 and y>4) or ((x+y)%4==0 and abs(x-8)<5 and 4<y<12)
-                else:
-                    visible=(abs(x-8)+abs(y-8)<10)
-                if not visible: pixels[y*16+x]=b"\x00\x00\x00\x00"
-    png(asset/("textures/item" if name in items else "textures/block")/(name+".png"),lambda x,y:pixels[y*16+x])
+    authored=Path('tools/art')/(name+'.png')
+    if authored.exists():
+        destination=asset/("textures/item" if name in items else "textures/block")/(name+'.png')
+        destination.parent.mkdir(parents=True,exist_ok=True)
+        shutil.copyfile(authored,destination)
+        continue
+    raise FileNotFoundError("Missing authored texture: "+str(authored))
+extra=asset/'textures/block/scarlet_trunk_top.png'
+shutil.copyfile(Path('tools/art/scarlet_trunk_top.png'),extra)
 for name in palette:
     if name in flora:
         model={"parent":"minecraft:block/cross","textures":{"cross":"sift:block/"+name}}
+    elif name in ('teal_turf','carapace_stone','scarlet_trunk'):
+        side={'teal_turf':'meadow_soil','carapace_stone':'carapace_shale',
+              'scarlet_trunk':'scarlet_trunk'}[name]
+        top='scarlet_trunk_top' if name=='scarlet_trunk' else name
+        model={"parent":"minecraft:block/cube_bottom_top","textures":{
+            'top':'sift:block/'+top,'bottom':'sift:block/'+side,'side':'sift:block/'+side}}
     else:
         model={"parent":"minecraft:block/cube_all","textures":{"all":"sift:block/"+name}}
     write(asset/"models/block"/(name+".json"),model)
-    write(asset/"blockstates"/(name+".json"),{"variants":{"":{"model":"sift:block/"+name}}})
+    # Rotate the entire model deterministically per block. Rock/moss patterns
+    # no longer form an aligned grid, while wood grooves remain vertical.
+    write(asset/"blockstates"/(name+".json"),{"variants":{"":[
+        {"model":"sift:block/"+name,"y":angle} for angle in (0,90,180,270)]}})
     if name in flora:
         # A crossed plant belongs in the world, but its held item must be a flat sprite.
         # Rendering the crossed block model directly produces an oversized held quad.

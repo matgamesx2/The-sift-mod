@@ -30,11 +30,29 @@ jobs:
           python3 tools/check_worldgen.py
       - name: Compile with Fabric Loom
         run: gradle --no-daemon clean build
+      - name: Inspect resolved client fluid API
+        run: |
+          python3 - <<'PY'
+          import os,zipfile,subprocess
+          from pathlib import Path
+          for root in (Path.home()/'.gradle/caches',Path('.gradle')):
+              for jar in root.rglob('*.jar'):
+                  try:
+                      with zipfile.ZipFile(jar) as z:
+                          if 'net/minecraft/client/color/block/BlockTintSource.class' not in z.namelist():continue
+                      for cls in ('net.minecraft.client.color.block.BlockTintSource',
+                                  'net.minecraft.client.color.block.BlockTintSources',
+                                  'net.minecraft.client.renderer.block.FluidModel',
+                                  'net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap'):
+                          subprocess.run(['javap','-classpath',str(jar),cls],check=False)
+                      raise SystemExit(0)
+                  except zipfile.BadZipFile:pass
+          PY
       - name: Publish compiled JAR
         uses: actions/upload-artifact@v4
         with:
-          name: the-sift-0.5.3-jar
-          path: build/libs/the-sift-0.5.3.jar
+          name: the-sift-0.5.4-jar
+          path: build/libs/the-sift-0.5.4.jar
           if-no-files-found: error
       - name: Save generated game assets to repository
         if: success()

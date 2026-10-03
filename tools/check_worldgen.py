@@ -34,6 +34,15 @@ for biome in ("meadows","carapace"):
             entry=json.loads(p.read_text(encoding="utf-8"))
             name2=entry["feature"].split(":")[-1]
             assert (data/"worldgen/feature"/(name2+".json")).exists(),name2
+# Reject the exact regression: air above a fluid is not valid plant ground.
+for path in (data/"worldgen/placed_feature").glob("*.json"):
+    value=json.loads(path.read_text())
+    filters=[m["predicate"] for m in value["placement"]
+             if m["type"]=="minecraft:block_predicate_filter"]
+    assert filters and filters[0]["type"]=="minecraft:all_of",path
+    ground=filters[0]["predicates"][1]
+    assert ground["offset"]==[0,-1,0],path
+    assert "sift:prismatic_tide_block" not in ground["blocks"],path
 for tag in (data/"tags/fluid/prismatic_tide.json",):
     assert tag.exists()
 for name,height in (("still",4096),("flow",4096),("overlay",128)):
@@ -46,4 +55,4 @@ for name,height in (("still",4096),("flow",4096),("overlay",128)):
         assert metadata["animation"]["interpolate"]
         assert metadata["animation"]["height"]==128
 assert (assets/"textures/item/prismatic_tide_bucket.png").exists()
-print("PASS SIFT 0.5.3: animated tide, 2 biomes, branching faults, bounded arches and basin floor")
+print("PASS SIFT 0.5.4: animated tide, 2 biomes, branching faults, bounded arches and basin floor")

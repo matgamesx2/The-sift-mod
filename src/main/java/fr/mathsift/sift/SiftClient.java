@@ -44,6 +44,10 @@ public final class SiftClient implements ClientModInitializer {
             !touchingTide(minecraft)) return;
         int width=minecraft.getWindow().getGuiScaledWidth();
         int height=minecraft.getWindow().getGuiScaledHeight();
+        var eye=BlockPos.containing(minecraft.player.getX(),minecraft.player.getEyeY(),minecraft.player.getZ());
+        var eyeFluid=minecraft.level.getFluidState(eye).getType();
+        if (eyeFluid==SiftFluids.STILL || eyeFluid==SiftFluids.FLOWING)
+            graphics.fill(0,0,width,height,0x38051A33);
         long time=minecraft.level.getGameTime();
         int block=Math.max(3,width/80);
         // Corner flames occupy at most 7% of the screen height; the center,

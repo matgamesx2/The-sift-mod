@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""THE SIFT 0.5.3 dedicated 26.3 world generator.
+"""THE SIFT 0.5.4 dedicated 26.3 world generator.
 The look is an original interpretation of the user-provided Dungeons II references:
 roofless amplified cliffs, elongated deep rifts, unstable ridges and prismatic tide below.
 All files are plain data; no proprietary game assets are copied.
@@ -31,16 +31,21 @@ branch_reach=clamp(mul(8.0,add(.28,mul(-1.0,main_distance))),0.0,1.0)
 rifts=add(fissure("rift_network",.100,.56,90.0),
           mul(branch_reach,fissure("rift_branches",.055,.70,62.0)))
 # Keep high plateaus, but give the fractures priority.
-meadow=mul(.39,noise("meadow_swell",.60,0.0))
-carapace=add(mul(.60,noise("carapace_ridge",.62,0.0)),
+meadow=mul(.22,noise("meadow_swell",.60,0.0))
+carapace=add(mul(.38,noise("carapace_ridge",.62,0.0)),
              mul(.35,ab(noise("sharp_cliffs",.74,.10))))
 biome_relief={"type":"minecraft:range_choice","input":"minecraft:overworld/temperature",
     "min_inclusive":-1000.0,"max_exclusive":-0.08,
     "when_in_range":meadow,"when_out_of_range":carapace}
 overhang=add(mul(.90,noise("overhang",.65,.48)),
-             mul(.26,noise("wall_breakup",.78,.60)))
+             mul(.58,noise("wall_breakup",.78,.95)))
 surface_gradient={"type":"minecraft:gradient","axis":"y","tiling":"clamp_to_edge",
     "from_coordinate":-64,"to_coordinate":285,"from_value":4.10,"to_value":-4.05}
+# A steeper upper gradient limits rounded summits; fault-side ledges cut the
+# long walls into broken horizontal shelves without filling the canyon trunk.
+upper_cap={"type":"minecraft:gradient","axis":"y","tiling":"clamp_to_edge",
+    "from_coordinate":96,"to_coordinate":160,"from_value":1.25,"to_value":-2.85}
+surface_gradient={"type":"minecraft:min","left":surface_gradient,"right":upper_cap}
 fractured=add(add(surface_gradient,biome_relief),add(rifts,overhang))
 # Local rock bridges: thin crossing bands with open space underneath, bounded
 # vertically so they cannot turn into a Nether roof. 3D noise roughens the arch.
@@ -48,9 +53,16 @@ def minimum(a,b):return {"type":"minecraft:min","left":a,"right":b}
 def ygradient(a,b,lo,hi):return {"type":"minecraft:gradient","axis":"y",
     "tiling":"clamp_to_edge","from_coordinate":a,"to_coordinate":b,
     "from_value":lo,"to_value":hi}
+ledge_zone=clamp(mul(20.0,add(main_distance,-.10)),0.0,1.0)
+ledge_patch=clamp(add(.35,noise("wall_breakup",.46,0.0)),0.0,.7)
+for bottom,top in ((6,19),(35,47),(64,75),(88,97)):
+    band=minimum(ygradient(bottom-7,bottom,-1.0,1.0),
+                 ygradient(top,top+7,1.0,-1.0))
+    band=clamp(band,0.0,1.0)
+    fractured=add(fractured,mul(ledge_zone,mul(ledge_patch,mul(.65,band))))
 bridge_band=minimum(ygradient(46,70,-1.0,1.0),ygradient(82,110,1.0,-1.0))
 bridge_shape=add(bridge_band,mul(.52,noise("overhang",.65,.48)))
-bridge_crossing=mul(32.0,add(.045,mul(-1.0,ab(noise("bridge_paths",.65,0.0)))))
+bridge_crossing=mul(32.0,add(.034,mul(-1.0,ab(noise("bridge_paths",.65,0.0)))))
 bridge_zone=mul(12.0,add(.115,mul(-1.0,main_distance)))
 bridges=minimum(bridge_zone,minimum(bridge_crossing,bridge_shape))
 fractured={"type":"minecraft:max","left":fractured,"right":bridges}
@@ -120,7 +132,7 @@ sub=condition(layer(3,True),{"type":"minecraft:sequence","sequence":[
 ]})
 put("worldgen/material_rule/fractured.json",{"type":"minecraft:sequence","sequence":[
     condition(bedrock,block("minecraft:bedrock")),
-    top,sub,condition(biome("meadows"),block("sift:meadow_soil")),
+    top,sub,condition(biome("meadows"),block("sift:carapace_shale")),
     condition(biome("carapace"),block("sift:carapace_shale"))
 ]})
 def climate(lo,hi):
@@ -137,37 +149,47 @@ def simple_feature(name,blockname):
     put("worldgen/feature/"+name+".json",{
         "type":"minecraft:simple_block","to_place":{
             "type":"minecraft:simple","state":{"id":blockname}}})
-def placed(name,positions,rarity=None,count=None):
+def placed(name,positions,rarity=None,count=None,rock=False):
     mods=[]
     if rarity is not None:mods.append({"type":"minecraft:rarity_filter","chance":rarity})
     if count is not None:mods.append({"type":"minecraft:count","count":count})
     mods += [{"type":"minecraft:in_square"},
              {"type":"minecraft:heightmap","heightmap":"WORLD_SURFACE_WG"},
              {"type":"minecraft:block_predicate_filter",
-              "predicate":{"type":"minecraft:matching_blocks","blocks":"minecraft:air"}},
+              "predicate":{"type":"minecraft:all_of","predicates":[
+                  {"type":"minecraft:matching_blocks","blocks":"minecraft:air"},
+                  {"type":"minecraft:matching_blocks","offset":[0,-1,0],
+                   "blocks":(["sift:carapace_stone","sift:carapace_shale","sift:sift_ochre"]
+                             if rock else ["sift:teal_turf","sift:meadow_soil",
+                                           "sift:red_growth","sift:spore_mat"])}]}},
              {"type":"minecraft:biome"}]
     put("worldgen/placed_feature/"+positions+".json",{"feature":"sift:"+name,"placement":mods})
 simple_feature("meadow_reeds","sift:meadow_reed")
 simple_feature("scarlet_sprouts","sift:scarlet_sprout")
 simple_feature("soul_blooms","sift:soul_bloom")
 simple_feature("carapace_glints","sift:lumen_cluster")
-placed("meadow_reeds","meadow_reeds",count=6)
-placed("scarlet_sprouts","scarlet_sprouts",count=7)
+placed("meadow_reeds","meadow_reeds",count=5)
+placed("scarlet_sprouts","scarlet_sprouts",count=4)
 placed("soul_blooms","soul_blooms",count=3)
-placed("carapace_glints","carapace_glints",count=2)
-# Familiar trees are intentionally scarce while cliff shapes are tested; no endless Nether forest.
-put("worldgen/feature/scarlet_tree.json",{
-    "type":"minecraft:tree",
-    "below_trunk_provider":{"type":"minecraft:simple","state":{"id":"sift:teal_turf"}},
-    "decorators":[],
-    "foliage_placer":{"type":"minecraft:blob_foliage_placer","height":2,"offset":0,"radius":3},
-    "foliage_provider":{"type":"minecraft:simple","state":{"id":"minecraft:red_poplar_leaves"}},
-    "ignore_vines":True,"minimum_size":{"type":"minecraft:two_layers_feature_size","upper_size":2},
-    "trunk_placer":{"type":"minecraft:straight_trunk_placer",
-                    "base_height":8,"height_rand_a":3,"height_rand_b":2},
-    "trunk_provider":{"type":"minecraft:simple","state":{"id":"minecraft:crimson_stem"}}
-})
-placed("scarlet_tree","scarlet_trees",rarity=7)
+placed("carapace_glints","carapace_glints",count=2,rock=True)
+# Dry-ground predicates run BEFORE the tree feature can replace its substrate.
+# All three silhouettes use our own red bark/canopy rather than vanilla stems.
+for name,height,radius,rarity in (("scarlet_tree",4,2,12),
+                                  ("scarlet_tree_wide",5,4,22),
+                                  ("scarlet_tree_tall",8,3,32)):
+    put("worldgen/feature/"+name+".json",{
+        "type":"minecraft:tree",
+        "below_trunk_provider":{"type":"minecraft:simple","state":{"id":"sift:teal_turf"}},
+        "decorators":[],
+        "foliage_placer":{"type":"minecraft:blob_foliage_placer","height":3,
+                          "offset":0,"radius":radius},
+        "foliage_provider":{"type":"minecraft:simple","state":{"id":"sift:red_canopy"}},
+        "ignore_vines":True,"minimum_size":{"type":"minecraft:two_layers_feature_size","upper_size":2},
+        "trunk_placer":{"type":"minecraft:straight_trunk_placer",
+                        "base_height":height,"height_rand_a":2,"height_rand_b":1},
+        "trunk_provider":{"type":"minecraft:simple","state":{"id":"sift:scarlet_trunk"}}
+    })
+    placed(name,name+"s",rarity=rarity)
 put("worldgen/feature/fossil_spires.json",{
     "type":"minecraft:block_column",
     "allowed_placement":{"type":"minecraft:matching_blocks","blocks":"minecraft:air"},
@@ -176,11 +198,11 @@ put("worldgen/feature/fossil_spires.json",{
                "provider":{"type":"minecraft:simple","state":{"id":"sift:fossil_rib"}}}],
     "prioritize_tip":False
 })
-placed("fossil_spires","fossil_spires",rarity=25)
+placed("fossil_spires","fossil_spires",rarity=25,rock=True)
 for name,sky,fog,water,features in [
-    ("meadows","#dfa9ee","#b98ac5","#87daca",
-     ["sift:scarlet_trees","sift:meadow_reeds","sift:scarlet_sprouts","sift:soul_blooms"]),
-    ("carapace","#a5a1d9","#7f8aa8","#caa7dd",
+    ("meadows","#b7a4c8","#847a99","#183a59",
+     ["sift:scarlet_trees","sift:scarlet_tree_wides","sift:scarlet_tree_talls","sift:meadow_reeds","sift:scarlet_sprouts","sift:soul_blooms"]),
+    ("carapace","#969cbc","#64718c","#183a59",
      ["sift:fossil_spires","sift:carapace_glints"])]:
     put("worldgen/biome/"+name+".json",{
         "attributes":{"minecraft:visual/sky_color":sky,"minecraft:visual/fog_color":fog},
@@ -193,4 +215,4 @@ for name,sky,fog,water,features in [
 put("tags/fluid/prismatic_tide.json",{
     "values":["sift:prismatic_tide","sift:flowing_prismatic_tide"]})
 put("function/tide_test.mcfunction",None) if False else None
-print("Generated 0.5.3: main faults, tributaries, bounded arches and raised basin substrate")
+print("Generated 0.5.4: main faults, tributaries, bounded arches and raised basin substrate")
