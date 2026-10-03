@@ -20,3 +20,18 @@ All visual assets here are original placeholders rather than extracted Minecraft
 - Added single-player `/function sift:enter` and `/function sift:leave` test commands; enter saves your overworld position and uses slow falling. These commands are experimental. Back up the world first.
 - Automated checks verify JSON and generated item-model relationships before compiling.
 - Terrain is **still the conservative prototype**. The earlier 0.3.7 biome terrain, giant fossils and fully custom Sift plants have not yet been ported into the compiled mod. Do not confuse compilation success with runtime validation.
+
+## 0.5.0 — Fractured worldgen & prismatic tide (experimental)
+
+Based on user-supplied *Minecraft Dungeons II* visual references, the Sift now has original dedicated roofless density generation. Broad 2D rift noise excavates connected ravines; plateau noise gives amplified cliffs; 3D noise cuts overhangs. Meadows and Carapace are distinct in the surface material rules, with sparse plants, trees and fossil spires.
+
+A new **real flowing fluid** is registered as `sift:prismatic_tide` and generated at the base of the rifts. Its client uses original rainbow-colored textures. It releases SOUL / SOUL_FIRE_FLAME particles and causes periodic magic damage and normal burning on contact. **The player's standard orange burning overlay has not yet been recolored blue**; the visible blue fire is currently the emitted particles. Render/worldgen must be tested in Minecraft, not only CI.
+
+### Test on a new Creative world only
+
+- `/function sift:enter` — enters Sift from Overworld (singleplayer test).
+- `/function sift:leave` — returns to saved location.
+- `/give @s sift:prismatic_tide_bucket` — get the new real fluid.
+- `/locate biome sift:carapace` — locate the second biome (in Sift).
+
+DO NOT open existing Sift saves with this major worldgen overhaul. Existing chunks cannot be regenerated without a new world. This is not yet a 1:1 reconstruction of Dungeons II; the hero biome trees, moving tides, giant fossil structures and blue player-burning overlay are still being developed.

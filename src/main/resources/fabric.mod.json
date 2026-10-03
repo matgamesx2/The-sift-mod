@@ -4,10 +4,19 @@
   "version": "${version}",
   "name": "THE SIFT — Experimental Java Mod",
   "description": "An original fan-made dimension inspired by the Sift. Unofficial, not affiliated with Mojang.",
-  "authors": ["Mathieu"],
+  "authors": [
+    "Mathieu"
+  ],
   "license": "MIT",
   "environment": "*",
-  "entrypoints": { "main": ["fr.mathsift.sift.SiftMod"] },
+  "entrypoints": {
+    "main": [
+      "fr.mathsift.sift.SiftMod"
+    ],
+    "client": [
+      "fr.mathsift.sift.SiftClient"
+    ]
+  },
   "depends": {
     "fabricloader": ">=0.19.5",
     "minecraft": "~26.3",

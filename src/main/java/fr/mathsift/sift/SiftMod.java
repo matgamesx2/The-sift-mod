@@ -14,6 +14,7 @@ public final class SiftMod implements ModInitializer {
     @Override public void onInitialize() {
         SiftBlocks.initialize();
         SiftItems.initialize();
-        LOG.info("THE SIFT: 17 blocks and 4 exploration items loaded");
+        SiftFluids.initialize();
+        LOG.info("THE SIFT: 17 blocks, 4 exploration items and 1 custom prismatic fluid loaded");
     }
 }
