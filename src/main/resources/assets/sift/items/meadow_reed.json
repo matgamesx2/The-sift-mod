@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "sift:block/meadow_reed"
+    "model": "sift:item/meadow_reed"
   }
 }

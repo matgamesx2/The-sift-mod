@@ -1,3 +1,6 @@
 {
-  "parent": "sift:block/scarlet_sprout"
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "sift:block/scarlet_sprout"
+  }
 }
