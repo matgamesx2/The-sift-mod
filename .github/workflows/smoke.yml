@@ -1,0 +1,60 @@
+name: Smoke test Minecraft 26.3 world registries
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'tools/**'
+      - 'gradle.properties'
+      - 'build.gradle'
+      - '.github/workflows/smoke.yml'
+permissions:
+  contents: read
+jobs:
+  headless-server:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.6.0'
+      - name: Generate all assets and dimension data
+        run: |
+          python3 tools/generate_assets.py
+          python3 tools/generate_worldgen.py
+          python3 tools/generate_tide.py
+          python3 tools/check_assets.py
+          python3 tools/check_worldgen.py
+      - name: Start Minecraft server and parse custom dimension registries
+        shell: bash
+        run: |
+          mkdir -p run
+          echo "eula=true" > run/eula.txt
+          echo "online-mode=false" > run/server.properties
+          gradle --no-daemon runServer --args='nogui' > /tmp/sift-server-stdout.log 2>&1 &
+          PID=$!
+          ready=0
+          for i in $(seq 1 185); do
+            if grep -Eiq 'Done \\(.*\\)! For help' /tmp/sift-server-stdout.log run/logs/latest.log 2>/dev/null; then
+              ready=1
+              break
+            fi
+            if ! kill -0 "$PID" 2>/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          tail -n 100 /tmp/sift-server-stdout.log || true
+          if [ -f run/logs/latest.log ]; then tail -n 80 run/logs/latest.log; fi
+          kill "$PID" 2>/dev/null || true
+          if [ "$ready" -ne 1 ]; then
+            echo "Server did not finish startup. Check errors above." >&2
+            exit 1
+          fi
+          echo "PASS: headless Minecraft 26.3 server accepted Sift dynamic registry files"
