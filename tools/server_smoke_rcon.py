@@ -139,7 +139,13 @@ def main():
     # at Y=-23 is allowed. Only roots directly above natural tide are rejected.
     c.run("Create vegetation scan counter","scoreboard objectives add sift_veg dummy")
     c.run("Reset vegetation scan counter","scoreboard players set found sift_veg 0")
+    c.run("Reset vegetation scan completion","scoreboard players set scan_done sift_veg 0")
     c.run("Scan all 36,864 waterline positions","execute in sift:sift run function sift:ci_vegetation_scan")
+    import time
+    for attempt in range(50):
+        if "has 1 " in c.command("scoreboard players get scan_done sift_veg"):break
+        time.sleep(.1)
+    else:raise RuntimeError("Vegetation scan did not reach its final command")
     result=c.command("scoreboard players get found sift_veg")
     import re
     count=re.search(r"has ([0-9]+) ",result)

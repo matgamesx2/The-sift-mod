@@ -11,5 +11,6 @@ tag.write_text(json.dumps({'values':['sift:scarlet_trunk','sift:meadow_reed',
 path=root/'function/ci_vegetation_scan.mcfunction'
 path.write_text(''.join(f'execute if block {x} -23 {z} #sift:ci_basin_vegetation '
     f'if block {x} -24 {z} sift:prismatic_tide_block run scoreboard players add found sift_veg 1\n'
-    for x in range(192) for z in range(192)))
+    for x in range(192) for z in range(192))+
+    "scoreboard players set scan_done sift_veg 1\n")
 print('Installed CI-only scan of 36,864 generated waterline positions')

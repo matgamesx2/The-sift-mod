@@ -9,7 +9,7 @@ La dimension `sift:sift` contient deux biomes, Meadows et Carapace, des failles 
 - Nouveaux matériaux originaux en 32 px, avec une palette commune : sols turquoise, schiste bleu-violet, végétation écarlate et fossiles ivoire. Faces supérieures et latérales distinctes, rotations des modèles pour varier les motifs.
 - Placement de chaque arbre, plante et décor conditionné à un sol solide autorisé. L'air au-dessus du liquide n'autorise plus la génération de végétation.
 - Trois silhouettes d'arbres utilisant les blocs et textures Sift, avec une densité réduite.
-- Sommets moins bombés, parois plus accidentées et corniches à différentes hauteurs. Le sous-sol des falaises est rocheux plutôt qu'un immense volume de sol turquoise.
+- Sommets en plateaux plats à plusieurs altitudes, bords de failles déformés en trois dimensions et corniches à différentes hauteurs. Le sous-sol des falaises est rocheux plutôt qu'un immense volume de sol turquoise.
 - Marée sombre et translucide : 32 images animées, reflets irisés déformés, coloration selon la profondeur et teinte sous-marine. Particules d'âme, lumière bleue, dégâts et flammes discrètes aux coins de l'écran conservés.
 - Fond rocheux imperméable au-dessus de la couche de lave vanilla.
 
@@ -41,4 +41,4 @@ gradle --no-daemon clean build
 
 Les sources des textures sont dans `tools/art/` ; les scripts les installent et génèrent les modèles, animations et données du monde.
 
-Le workflow serveur démarre Minecraft et vérifie de vrais chunks avec la graine 42819 : équilibre crevasses/plateaux, ciel ouvert, arches, substrat solide, absence de lave et de végétation à la surface des bassins, écoulement et dégâts du fluide sans feu orange. Le workflow client démarre une fenêtre Minecraft sous OpenGL logiciel, rejoint un serveur local et conserve les captures et journaux comme artefacts. Consulter son résultat avant de considérer la vérification visuelle comme réussie.
+Le workflow serveur démarre Minecraft et vérifie de vrais chunks avec la graine 42819 : équilibre crevasses/plateaux, ciel ouvert, arches, substrat solide, absence de lave et de végétation à la surface des bassins, écoulement et dégâts du fluide sans feu orange. Le workflow client démarre Minecraft avec un rendu Vulkan logiciel, rejoint un serveur local et capture directement le tampon de rendu du jeu. Quatre vues couvrent les plateaux, un bassin naturel, un bassin de profondeur connue et le contact en première personne. Les captures et journaux sont conservés comme artefacts. Les helpers de capture et de scan sont installés uniquement dans les jobs de test ; ils sont absents du JAR livré.
