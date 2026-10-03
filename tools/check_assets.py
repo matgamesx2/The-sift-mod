@@ -14,7 +14,7 @@ for file in root.rglob("*.json"):
     json.loads(file.read_text(encoding="utf-8"))
 for name in blocks:
     png=assets/"textures/block"/(name+".png")
-    assert png.read_bytes()[:8]==b"\\x89PNG\\r\\n\\x1a\\n", png
+    assert png.read_bytes()[:8]==bytes.fromhex("89504e470d0a1a0a"), png
     assert (assets/"blockstates"/(name+".json")).exists()
     itemdef=json.loads((assets/"items"/(name+".json")).read_text(encoding="utf-8"))
     model=json.loads((assets/"models/item"/(name+".json")).read_text(encoding="utf-8"))
