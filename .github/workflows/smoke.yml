@@ -78,7 +78,7 @@ jobs:
         with:
           gradle-version: '9.6.0'
       - name: Install software OpenGL and capture tools
-        run: sudo apt-get update && sudo apt-get install -y xvfb libgl1-mesa-dri mesa-utils mesa-vulkan-drivers vulkan-tools libflite1 libflite-dev xdotool imagemagick
+        run: sudo apt-get update && sudo apt-get install -y xvfb libgl1-mesa-dri mesa-utils mesa-vulkan-drivers vulkan-tools libflite1 xdotool imagemagick
       - name: Prepare client and server
         run: |
           python3 tools/generate_assets.py
