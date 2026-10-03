@@ -16,10 +16,12 @@ def rainbow(x,y,n,phase=0.0,flow=False):
     xx=2*math.pi*x/n; yy=2*math.pi*y/n
     warp=.45*math.sin(yy+phase)+.22*math.sin(xx-yy-phase)
     ribbon=math.sin(xx+warp+phase)
-    drift=.23*ribbon+.08*math.sin(yy-xx+phase)
+    # Most iridescence changes over time rather than forming contrasting
+    # patches in each repeated block. Spatial ribbons stay deliberately faint.
+    drift=.21*math.sin(phase)+.038*ribbon+.020*math.sin(yy-xx+phase)
     hue=(.57+drift)%1.0
-    saturation=.22+.045*math.sin(yy+phase)
-    value=.72+.022*math.sin(xx+yy-phase)
+    saturation=.18+.020*math.sin(yy+phase)
+    value=.72+.012*math.sin(xx+yy-phase)
     r,g,b=colorsys.hsv_to_rgb(hue,saturation,value)
     pearl=.012*(1+math.sin((yy if flow else xx)+warp-phase))
     return tuple(min(255,round(255*(c+pearl))) for c in (r,g,b))+(232,)

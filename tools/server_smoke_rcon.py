@@ -115,6 +115,16 @@ def main():
     print(f"BASIN SURVEY: natural tide {tide}/{len(samples)}, solid Y-53 {substrate}/{len(samples)}",flush=True)
     sky=sum(block_test(x,310,z,"minecraft:air")[0] for x,z in samples)
     if sky!=len(samples):raise RuntimeError("Unexpected roof above the Sift")
+    # Detect actual air-under-rock columns: density JSON alone cannot prove
+    # that the narrow arch bands survive interpolation into generated blocks.
+    overhangs=0
+    for z in range(8,192,8):
+        for x in range(8,192,8):
+            if not block_test(x,40,z,"minecraft:air")[0]:continue
+            if any(not block_test(x,y,z,"minecraft:air")[0] for y in (56,72,88,104)):
+                overhangs+=1
+    if overhangs<1:raise RuntimeError("No physical arch/overhang found in the survey")
+    print(f"ARCH SURVEY: {overhangs} air-under-rock columns in 529 samples",flush=True)
     # Exhaustive scan of 192x192 columns from Y=-63 to -24, including the
     # vanilla lava altitude. fill is used as a counted query: zero replacements
     # is the only passing result, so a failing scan never hides a generation bug.
