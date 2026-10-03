@@ -38,7 +38,7 @@ class Rcon:
         low=msg.lower()
         if not msg or any(x in low for x in (
            "unknown", "incorrect argument", "could not", "failed", "exception",
-           "not a valid", "cannot find", "no dimension")):
+           "not a valid", "cannot find", "no dimension", "not loaded")):
             raise RuntimeError("Unexpected output from "+name+": "+msg)
         return msg
     def command(self,cmd):

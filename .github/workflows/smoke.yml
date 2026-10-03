@@ -84,6 +84,7 @@ jobs:
           python3 tools/generate_assets.py
           python3 tools/generate_worldgen.py
           python3 tools/generate_tide.py
+          python3 tools/enable_client_capture.py
           gradle --no-daemon classes
           mkdir -p run/visual
           echo 'eula=true' > run/eula.txt

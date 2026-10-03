@@ -20,16 +20,20 @@ c.run('Flying camera','gamemode spectator '+player)
 c.run('Daylight','execute in sift:sift run time set 6000')
 c.command('gamerule advance_time false')
 c.command('gamerule do_mob_spawning false')
-# SDL 3 may leave the X11 WM_NAME empty. Capture the virtual display directly
-# and send keys to its focused game window, avoiding title-dependent discovery.
-time.sleep(3)
-subprocess.run(['import','-window','root',str(out/'00-joined.png')],check=True,timeout=25)
-subprocess.run(['xdotool','key','F1'],check=True)
+# Read back Minecraft's actual render target. Vulkan/Xvfb's desktop window
+# may be blank despite successful world rendering, so X11 grabs are unsuitable.
 def capture(name,x,y,z,yaw,pitch):
     c.run('Camera '+name,f'execute in sift:sift run tp {player} {x} {y} {z} {yaw} {pitch}')
     time.sleep(12)
-    subprocess.run(['import','-window','root',str(out/(name+'.png'))],check=True,timeout=25)
-    print('CLIENT FRAME: '+name,flush=True)
+    (out/'capture.request').write_text(name)
+    for attempt in range(60):
+        if (out/(name+'.ready')).exists():break
+        time.sleep(.5)
+    else:raise RuntimeError('Minecraft did not finish internal screenshot '+name)
+    path=out/(name+'.png')
+    if path.stat().st_size<25000:
+        raise RuntimeError('Blank/insufficient internal game frame: '+name)
+    print('CLIENT FRAME: '+name+' bytes='+str(path.stat().st_size),flush=True)
 capture('01-fractured-plateaus',96,160,96,-45,36)
 c.run('Load natural basins','execute in sift:sift run forceload add 0 0 191 191')
 basin=None
@@ -42,20 +46,20 @@ if not basin:raise RuntimeError('No natural tide found for the client capture')
 x,z=basin
 capture('02-natural-tide',x+.5,-14,z+.5,35,18)
 # A known-depth pool isolates actual flowing-fluid rendering and underwater view.
+c.run('Load depth pool','execute in sift:sift run forceload add 220 220 232 232')
 c.run('Pool floor','execute in sift:sift run fill 220 145 220 232 145 232 sift:carapace_shale')
 c.run('Pool walls','execute in sift:sift run fill 220 146 220 232 150 232 sift:fossil_rib hollow')
 c.run('Pool tide','execute in sift:sift run fill 221 146 221 231 149 231 sift:prismatic_tide_block')
 c.run('Open pool surface','execute in sift:sift run fill 221 150 221 231 150 231 minecraft:air')
 capture('03-tide-depth',226.5,153,218.5,0,35)
 c.run('First-person liquid contact','gamemode creative '+player)
-# HUD on: verifies the blue effect in first-person and the underwater tint.
-subprocess.run(['xdotool','key','F1'],check=True)
+# Native screenshots include the HUD, including the first-person blue effect.
 capture('04-submerged-first-person',226.5,146.5,226.5,0,3)
 log=Path('run/visual/client-console.log').read_text(errors='replace')
 bad=[line for line in log.splitlines() if 'sift:' in line and any(t in line.lower() for t in
      ('unable to load','missing model','missing texture','failed to load','exception'))]
 if bad:raise RuntimeError('Client resource errors: '+ '\n'.join(bad))
 (out/'result.json').write_text(json.dumps({'client_joined':True,'dimension':'sift:sift',
-    'natural_basin':basin,'screenshots':4,'sift_resource_errors':bad},indent=2))
+    'natural_basin':basin,'screenshots':4,'capture_method':'Minecraft render-target readback','sift_resource_errors':bad},indent=2))
 print('PASS: real Minecraft client joined, rendered Sift chunks and custom liquid',flush=True)
 c.command('stop');c.sock.close()
