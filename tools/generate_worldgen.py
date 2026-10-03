@@ -20,15 +20,19 @@ def clamp(value,low,high):return {"type":"minecraft:clamp","input":value,"min":l
 def gradient():return {"type":"minecraft:gradient","axis":"y","tiling":"clamp_to_edge",
     "from_coordinate":-64,"to_coordinate":280,"from_value":4.2,"to_value":-5.0}
 # Two 2D fracture networks make long connected tectonic rifts instead of rolling mountains.
-def fissure(name,width,scale,strength,edge=1.0):
+def fissure(name,width,scale,strength,edge=1.0,warp=0.0):
     centerline=ab(noise(name,scale,0.0))
+    if warp:
+        # Warp the fault EDGE in three dimensions, rather than lifting mesa
+        # summits. The wall moves inward/outward across Y to form rock breaks.
+        centerline=add(centerline,mul(warp,noise("wall_breakup",.62,.50)))
     mask=clamp(mul(edge,add(width,mul(-1.0,centerline))),0.0,width)
     return mul(-strength,mask)
 main_distance=ab(noise("rift_network",.56,0.0))
 # Tributaries get shallower away from the main fault instead of making a
 # second equally-wide canyon system. Higher-frequency branches meet the trunk.
 branch_reach=clamp(mul(8.0,add(.28,mul(-1.0,main_distance))),0.0,1.0)
-rifts=add(fissure("rift_network",.100,.56,90.0,edge=4.0),
+rifts=add(fissure("rift_network",.100,.56,90.0,edge=4.0,warp=.050),
           mul(branch_reach,fissure("rift_branches",.055,.70,62.0)))
 # Keep high plateaus, but give the fractures priority.
 # Quantized tectonic elevations make true flat mesas, not rounded hilltops.
@@ -70,7 +74,7 @@ for bottom,top in ((6,19),(35,47),(64,75),(88,97)):
     band=minimum(ygradient(bottom-7,bottom,-1.0,1.0),
                  ygradient(top,top+7,1.0,-1.0))
     band=clamp(band,0.0,1.0)
-    fractured=add(fractured,mul(ledge_zone,mul(ledge_patch,mul(.65,band))))
+    fractured=add(fractured,mul(ledge_zone,mul(ledge_patch,mul(2.4,band))))
 bridge_band=minimum(ygradient(46,70,-1.0,1.0),ygradient(82,110,1.0,-1.0))
 bridge_shape=add(bridge_band,mul(.52,noise("overhang",.65,.48)))
 bridge_crossing=mul(32.0,add(.034,mul(-1.0,ab(noise("bridge_paths",.65,0.0)))))
