@@ -41,7 +41,7 @@ jobs:
           PID=$!
           ready=0
           for i in $(seq 1 185); do
-            if grep -Eiq 'Done \\(.*\\)! For help' /tmp/sift-server-stdout.log run/logs/latest.log 2>/dev/null; then
+            if grep -Fq 'Done (' /tmp/sift-server-stdout.log run/logs/latest.log 2>/dev/null; then
               ready=1
               break
             fi
