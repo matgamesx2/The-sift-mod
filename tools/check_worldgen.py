@@ -20,6 +20,7 @@ assert "rift_network" in json.dumps(density)
 assert "overhang" in json.dumps(density)
 assert "bridge_paths" in json.dumps(density)
 assert "basin_floor" in json.dumps(density)
+assert "range_choice" in json.dumps(density)
 assert (data/"worldgen/material_rule/fractured.json").exists()
 dimension=json.loads((data/"dimension/sift.json").read_text(encoding="utf-8"))
 assert dimension["generator"]["settings"]=="sift:fractured"

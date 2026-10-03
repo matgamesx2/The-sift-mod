@@ -36,15 +36,17 @@ def capture(name,x,y,z,yaw,pitch):
     print('CLIENT FRAME: '+name+' bytes='+str(path.stat().st_size),flush=True)
 capture('01-fractured-plateaus',96,160,96,-45,36)
 c.run('Load natural basins','execute in sift:sift run forceload add 0 0 191 191')
-basin=None
+candidates=[]
 for z in range(8,192,24):
     for x in range(8,192,24):
-        if 'Test passed' in c.command(f'execute in sift:sift if block {x} -24 {z} sift:prismatic_tide_block'):
-            basin=(x,z);break
-    if basin:break
-if not basin:raise RuntimeError('No natural tide found for the client capture')
-x,z=basin
-capture('02-natural-tide',x+.5,-14,z+.5,35,18)
+        if 'Test passed' not in c.command(f'execute in sift:sift if block {x} -24 {z} sift:prismatic_tide_block'):continue
+        if 'Test passed' not in c.command(f'execute in sift:sift if block {x} -10 {z} minecraft:air'):continue
+        score=sum('Test passed' in c.command(f'execute in sift:sift if block {x+dx} -24 {z+dz} sift:prismatic_tide_block')
+                  for dx,dz in ((-8,0),(8,0),(0,-8),(0,8),(-8,-8),(8,8),(-8,8),(8,-8)))
+        candidates.append((score,x,z))
+if not candidates:raise RuntimeError('No open natural tide basin found for the client capture')
+score,x,z=max(candidates);basin=(x,z)
+capture('02-natural-tide',x+.5,-10,z+.5,35,18)
 # A known-depth pool isolates actual flowing-fluid rendering and underwater view.
 c.run('Load depth pool','execute in sift:sift run forceload add 220 220 232 232')
 c.run('Pool floor','execute in sift:sift run fill 220 145 220 232 145 232 sift:carapace_shale')

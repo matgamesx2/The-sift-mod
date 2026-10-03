@@ -20,25 +20,36 @@ def clamp(value,low,high):return {"type":"minecraft:clamp","input":value,"min":l
 def gradient():return {"type":"minecraft:gradient","axis":"y","tiling":"clamp_to_edge",
     "from_coordinate":-64,"to_coordinate":280,"from_value":4.2,"to_value":-5.0}
 # Two 2D fracture networks make long connected tectonic rifts instead of rolling mountains.
-def fissure(name,width,scale,strength):
+def fissure(name,width,scale,strength,edge=1.0):
     centerline=ab(noise(name,scale,0.0))
-    mask=clamp(add(width,mul(-1.0,centerline)),0.0,width)
+    mask=clamp(mul(edge,add(width,mul(-1.0,centerline))),0.0,width)
     return mul(-strength,mask)
 main_distance=ab(noise("rift_network",.56,0.0))
 # Tributaries get shallower away from the main fault instead of making a
 # second equally-wide canyon system. Higher-frequency branches meet the trunk.
 branch_reach=clamp(mul(8.0,add(.28,mul(-1.0,main_distance))),0.0,1.0)
-rifts=add(fissure("rift_network",.100,.56,90.0),
+rifts=add(fissure("rift_network",.100,.56,90.0,edge=4.0),
           mul(branch_reach,fissure("rift_branches",.055,.70,62.0)))
 # Keep high plateaus, but give the fractures priority.
-meadow=mul(.22,noise("meadow_swell",.60,0.0))
-carapace=add(mul(.38,noise("carapace_ridge",.62,0.0)),
-             mul(.35,ab(noise("sharp_cliffs",.74,.10))))
+# Quantized tectonic elevations make true flat mesas, not rounded hilltops.
+# The 2D field chooses each plateau's altitude; 3D noise is restricted to walls.
+def terrace(field,low,mid,high):
+    return {"type":"minecraft:range_choice","input":field,
+        "min_inclusive":-1000.0,"max_exclusive":-.16,
+        "when_in_range":low,"when_out_of_range":{
+            "type":"minecraft:range_choice","input":field,
+            "min_inclusive":-.16,"max_exclusive":.18,
+            "when_in_range":mid,"when_out_of_range":high}}
+meadow=terrace(noise("meadow_swell",.60,0.0),-.12,.18,.58)
+carapace=terrace(add(noise("carapace_ridge",.62,0.0),
+                    mul(.22,ab(noise("sharp_cliffs",.74,0.0)))),.02,.34,.76)
 biome_relief={"type":"minecraft:range_choice","input":"minecraft:overworld/temperature",
     "min_inclusive":-1000.0,"max_exclusive":-0.08,
     "when_in_range":meadow,"when_out_of_range":carapace}
-overhang=add(mul(.90,noise("overhang",.65,.48)),
-             mul(.58,noise("wall_breakup",.78,.95)))
+summit_fade={"type":"minecraft:gradient","axis":"y","tiling":"clamp_to_edge",
+    "from_coordinate":72,"to_coordinate":104,"from_value":1.0,"to_value":0.0}
+overhang=mul(summit_fade,add(mul(.90,noise("overhang",.65,.48)),
+             mul(.58,noise("wall_breakup",.78,.95))))
 surface_gradient={"type":"minecraft:gradient","axis":"y","tiling":"clamp_to_edge",
     "from_coordinate":-64,"to_coordinate":285,"from_value":4.10,"to_value":-4.05}
 # A steeper upper gradient limits rounded summits; fault-side ledges cut the
@@ -53,7 +64,7 @@ def minimum(a,b):return {"type":"minecraft:min","left":a,"right":b}
 def ygradient(a,b,lo,hi):return {"type":"minecraft:gradient","axis":"y",
     "tiling":"clamp_to_edge","from_coordinate":a,"to_coordinate":b,
     "from_value":lo,"to_value":hi}
-ledge_zone=clamp(mul(20.0,add(main_distance,-.10)),0.0,1.0)
+ledge_zone=clamp(mul(25.0,add(main_distance,-.055)),0.0,1.0)
 ledge_patch=clamp(add(.35,noise("wall_breakup",.46,0.0)),0.0,.7)
 for bottom,top in ((6,19),(35,47),(64,75),(88,97)):
     band=minimum(ygradient(bottom-7,bottom,-1.0,1.0),
@@ -215,4 +226,4 @@ for name,sky,fog,water,features in [
 put("tags/fluid/prismatic_tide.json",{
     "values":["sift:prismatic_tide","sift:flowing_prismatic_tide"]})
 put("function/tide_test.mcfunction",None) if False else None
-print("Generated 0.5.4: main faults, tributaries, bounded arches and raised basin substrate")
+print("Generated 0.5.4: flat tectonic mesas, sharp branching faults, broken walls, arches and lava-proof basin floor")
