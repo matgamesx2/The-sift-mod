@@ -83,6 +83,23 @@ def main():
     print("TERRAIN CROSS SECTION Z:", "".join(strips["z"]),flush=True)
     c.run("Unforce canyon strip X","execute in sift:sift run forceload remove 0 0 255 15")
     c.run("Unforce canyon strip Z","execute in sift:sift run forceload remove 0 0 15 255")
+    # Broader 2D survey: distinguish concentrated rifts from terrain carved everywhere.
+    c.run("Generate 2D terrain grid","execute in sift:sift run forceload add 0 0 191 191")
+    samples=[(x,z) for z in range(8,192,24) for x in range(8,192,24)]
+    deep=[];mid=[];high=[]
+    for x,z in samples:
+        deep.append(block_test(x,40,z,"minecraft:air")[0])
+        mid.append(not block_test(x,75,z,"minecraft:air")[0])
+        high.append(not block_test(x,100,z,"minecraft:air")[0])
+    print("2D TERRAIN GRID: air Y40",sum(deep),"/",len(deep),flush=True)
+    print("2D TERRAIN GRID: solid Y75",sum(mid),"/",len(mid),flush=True)
+    print("2D TERRAIN GRID: solid Y100",sum(high),"/",len(high),flush=True)
+    for row in range(8):
+        print("2D RIFTS z=%3d:"%(8+24*row),
+             "".join("V" if deep[row*8+i] else "#" for i in range(8)),
+             "| PLATEAUS", "".join("P" if mid[row*8+i] else "." for i in range(8)),
+             flush=True)
+    c.run("Unforce 2D terrain grid","execute in sift:sift run forceload remove 0 0 191 191")
     c.sock.close()
     print("PASS: Sift chunk loaded, custom liquid block placed, chunk released",flush=True)
 if __name__=="__main__":main()
