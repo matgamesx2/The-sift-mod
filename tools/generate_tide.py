@@ -4,25 +4,34 @@ from pathlib import Path
 import struct,zlib,math,colorsys,json
 root=Path("src/main/resources/assets/sift")
 def chunk(t,d):return struct.pack(">I",len(d))+t+d+struct.pack(">I",zlib.crc32(t+d)&0xffffffff)
-def save_png(path,size,pixel):
+def save_png(path,size,pixel,height=None):
+    height=height or size
     path.parent.mkdir(parents=True,exist_ok=True)
-    scan=b"".join(b"\x00"+b"".join(bytes(pixel(x,y)) for x in range(size)) for y in range(size))
-    head=struct.pack(">IIBBBBB",size,size,8,6,0,0,0)
+    scan=b"".join(b"\x00"+b"".join(bytes(pixel(x,y)) for x in range(size)) for y in range(height))
+    head=struct.pack(">IIBBBBB",size,height,8,6,0,0,0)
     path.write_bytes(b"\x89PNG\r\n\x1a\n"+chunk(b"IHDR",head)+chunk(b"IDAT",zlib.compress(scan,9))+chunk(b"IEND",b""))
-def rainbow(x,y,n):
-    # Seamless low-saturation color field; avoids checkerboard when tiled.
+def rainbow(x,y,n,phase=0.0,flow=False):
+    # Seamless moving aurora ribbons. Broad color changes and low contrast
+    # remove the old bright oval/checker motif; the loop also joins in time.
     xx=2*math.pi*x/n; yy=2*math.pi*y/n
-    drift=.19*math.sin(xx)+.14*math.cos(yy)+.09*math.sin(xx+yy)
-    hue=(.55+drift+.045*math.cos(xx*2-yy))%1.0
-    r,g,b=colorsys.hsv_to_rgb(hue,.35,.93)
-    pearl=.045*(1.0+math.cos(xx-yy))
-    return (min(255,int(255*(r+pearl))),
-            min(255,int(255*(g+pearl))),
-            min(255,int(255*(b+pearl))),174)
+    warp=.45*math.sin(yy+phase)+.22*math.sin(xx-yy-phase)
+    ribbon=math.sin(xx+warp+phase)
+    drift=.23*ribbon+.08*math.sin(yy-xx+phase)
+    hue=(.57+drift)%1.0
+    saturation=.22+.045*math.sin(yy+phase)
+    value=.72+.022*math.sin(xx+yy-phase)
+    r,g,b=colorsys.hsv_to_rgb(hue,saturation,value)
+    pearl=.012*(1+math.sin((yy if flow else xx)+warp-phase))
+    return tuple(min(255,round(255*(c+pearl))) for c in (r,g,b))+(232,)
 tex=root/"textures/block"
-save_png(tex/"prismatic_tide_still.png",64,lambda x,y:rainbow(x,y,64))
-save_png(tex/"prismatic_tide_flow.png",64,lambda x,y:rainbow(x,y,64))
-save_png(tex/"prismatic_tide_overlay.png",64,lambda x,y:rainbow(x,y,64))
+SIZE,FRAMES=128,32
+for name in ("still","flow"):
+    p=tex/("prismatic_tide_"+name+".png")
+    save_png(p,SIZE,lambda x,y:rainbow(x,y%SIZE,SIZE,
+        2*math.pi*(y//SIZE)/FRAMES,name=="flow"),SIZE*FRAMES)
+    p.with_suffix(".png.mcmeta").write_text(json.dumps({"animation":{
+        "width":SIZE,"height":SIZE,"frametime":3,"interpolate":True}},indent=2)+"\n")
+save_png(tex/"prismatic_tide_overlay.png",SIZE,lambda x,y:rainbow(x,y,SIZE))
 def bucket(x,y):
     cx=abs(x-8)
     in_bucket=4<=y<=13 and 2<=x<=13 and (y<7 or cx<=5)
@@ -46,4 +55,4 @@ for name in ("fr_fr","en_us"):
         "Seau de marée prismatique" if name=="fr_fr" else "Prismatic Tide Bucket"
     )
     f.write_text(json.dumps(payload,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
-print("Generated 3 iridescent fluid textures, bucket icon and translations")
+print("Generated 32-frame seamless aurora fluid animations, overlay, bucket and translations")

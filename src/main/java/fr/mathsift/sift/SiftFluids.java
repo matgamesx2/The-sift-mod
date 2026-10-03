@@ -28,7 +28,8 @@ public final class SiftFluids {
     private static final ResourceKey<Block> BLOCK_KEY =
         ResourceKey.create(Registries.BLOCK, SiftMod.id("prismatic_tide_block"));
     public static final Block BLOCK = Registry.register(BuiltInRegistries.BLOCK, BLOCK_KEY,
-        new LiquidBlock(STILL, BlockBehaviour.Properties.ofFullCopy(Blocks.WATER).setId(BLOCK_KEY)));
+        new LiquidBlock(STILL, BlockBehaviour.Properties.ofFullCopy(Blocks.WATER)
+            .lightLevel(state -> 7).setId(BLOCK_KEY)));
 
     private static final ResourceKey<Item> BUCKET_KEY =
         ResourceKey.create(Registries.ITEM, SiftMod.id("prismatic_tide_bucket"));

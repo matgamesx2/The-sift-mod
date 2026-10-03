@@ -33,18 +33,21 @@ class Rcon:
             if rid==-1:raise RuntimeError("RCON auth refused")
         raise RuntimeError("No auth response")
     def run(self,name,cmd):
+        msg=self.command(cmd)
+        print(name+" => "+repr(msg),flush=True)
+        low=msg.lower()
+        if not msg or any(x in low for x in (
+           "unknown", "incorrect argument", "could not", "failed", "exception",
+           "not a valid", "cannot find", "no dimension")):
+            raise RuntimeError("Unexpected output from "+name+": "+msg)
+        return msg
+    def command(self,cmd):
         self.packet(502,2,cmd)
         for i in range(5):
             rid,typ,msg=self.read()
             if rid==502:
-                print(name+" => "+repr(msg),flush=True)
-                low=msg.lower()
-                if not msg or any(x in low for x in (
-                   "unknown", "incorrect argument", "could not", "failed", "exception",
-                   "not a valid", "cannot find", "no dimension")):
-                    raise RuntimeError("Unexpected output from "+name+": "+msg)
                 return msg
-        raise RuntimeError("No matching RCON response to "+name)
+        raise RuntimeError("No matching RCON response to "+cmd)
 def main():
     c=Rcon();c.authenticate()
     c.run("Generate Sift chunk","execute in sift:sift run forceload add 0 0")
@@ -102,6 +105,51 @@ def main():
     # The fixed-seed survey must show canyons AND plateaus rather than one empty basin.
     if not (6<=sum(deep)<=38 and sum(mid)>=20 and sum(high)>=6):
         raise RuntimeError("Canyon-to-plateau balance failed: revise density masks")
+    # Natural tide must exist, with solid substrate beneath and open sky above.
+    tide=sum(block_test(x,-24,z,"sift:prismatic_tide_block")[0] for x,z in samples)
+    substrate=sum(not block_test(x,-53,z,"minecraft:air")[0] and
+        not block_test(x,-53,z,"minecraft:lava")[0] and
+        not block_test(x,-53,z,"sift:prismatic_tide_block")[0] for x,z in samples)
+    if tide<3 or substrate!=len(samples):
+        raise RuntimeError(f"Natural tide/substrate failed: tide={tide}, floor={substrate}")
+    print(f"BASIN SURVEY: natural tide {tide}/{len(samples)}, solid Y-53 {substrate}/{len(samples)}",flush=True)
+    sky=sum(block_test(x,310,z,"minecraft:air")[0] for x,z in samples)
+    if sky!=len(samples):raise RuntimeError("Unexpected roof above the Sift")
+    # Exhaustive scan of 192x192 columns from Y=-63 to -24, including the
+    # vanilla lava altitude. fill is used as a counted query: zero replacements
+    # is the only passing result, so a failing scan never hides a generation bug.
+    for x in range(0,192,32):
+        for z in range(0,192,32):
+            for lo,hi in ((-63,-32),(-31,-24)):
+                msg=c.command(f"execute in sift:sift run fill {x} {lo} {z} {x+31} {hi} {z+31} minecraft:air replace minecraft:lava")
+                if "No blocks were filled" not in msg:
+                    raise RuntimeError("LAVA SCAN FAILED at "+str((x,lo,z))+": "+msg)
+    print("PASS: no vanilla lava in 1,474,560 generated basin blocks",flush=True)
+    # Flow and living-entity damage, independently from the natural basin.
+    c.run("Build fluid test bed","execute in sift:sift run fill 0 190 0 5 190 5 sift:carapace_shale")
+    c.run("Place flowing source","execute in sift:sift run setblock 2 191 2 sift:prismatic_tide_block")
+    import time
+    time.sleep(2)
+    if not block_test(3,191,2,"sift:prismatic_tide_block")[0]:
+        raise RuntimeError("Custom fluid did not flow sideways")
+    c.run("Fill burn test bath","execute in sift:sift run fill 1 191 1 3 192 3 sift:prismatic_tide_block")
+    c.run("Summon burn subject",'execute in sift:sift run summon minecraft:pig 2.5 191 2.5 {Tags:["sift_burn_test"],NoAI:1b,PersistenceRequired:1b}')
+    def health():
+        msg=c.command('execute in sift:sift run data get entity @e[tag=sift_burn_test,limit=1] Health')
+        import re
+        match=re.search(r": ([0-9.]+)f",msg)
+        if not match:raise RuntimeError("Missing health response: "+msg)
+        return float(match.group(1))
+    before=health();time.sleep(1.2);after=health()
+    if after>=before:raise RuntimeError("Tide did not damage the living test subject")
+    fire=c.command('execute in sift:sift run data get entity @e[tag=sift_burn_test,limit=1] Fire')
+    import re
+    fire_ticks=re.search(r": (-?[0-9]+)s",fire)
+    if not fire_ticks or int(fire_ticks.group(1))>0:
+        raise RuntimeError("Vanilla orange fire unexpectedly active: "+fire)
+    print(f"PASS: custom tide flows, health {before}->{after}, no vanilla fire ticks",flush=True)
+    c.run("Remove burn subject","execute in sift:sift run kill @e[tag=sift_burn_test]")
+    c.run("Clear fluid test bath","execute in sift:sift run fill 0 190 0 5 192 5 minecraft:air")
     c.run("Unforce 2D terrain grid","execute in sift:sift run forceload remove 0 0 191 191")
     c.sock.close()
     print("PASS: Sift chunk loaded, custom liquid block placed, chunk released",flush=True)

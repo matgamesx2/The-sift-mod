@@ -1,6 +1,8 @@
 package fr.mathsift.sift;
 
 import java.util.Optional;
+import java.util.Map;
+import java.util.WeakHashMap;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -32,6 +34,9 @@ import net.minecraft.world.level.material.FluidState;
  * would render orange, so blue flames and damage are handled independently.
  */
 public abstract class PrismaticTideFluid extends FlowingFluid {
+    // entityInside can run for several overlapping fluid cells in one tick.
+    // Weak keys keep this deduplication from retaining unloaded entities.
+    private static final Map<Entity, Long> LAST_CONTACT = new WeakHashMap<>();
     @Override public Fluid getSource() { return SiftFluids.STILL; }
     @Override public Fluid getFlowing() { return SiftFluids.FLOWING; }
     @Override public boolean isSame(Fluid fluid) {
@@ -47,14 +52,16 @@ public abstract class PrismaticTideFluid extends FlowingFluid {
         Block.dropResources(state, world, pos, blockEntity);
     }
     @Override public void animateTick(Level world, BlockPos pos, FluidState state, RandomSource random) {
-        if (random.nextInt(9) == 0) {
+        if (!world.getBlockState(pos.above()).isAir()) return;
+        double surface=pos.getY()+state.getHeight(world,pos)+0.05;
+        if (random.nextInt(28) == 0) {
             world.addParticle(ParticleTypes.SOUL,
-                pos.getX() + random.nextDouble(), pos.getY() + 0.8,
+                pos.getX() + random.nextDouble(), surface,
                 pos.getZ() + random.nextDouble(), 0.0, 0.05, 0.0);
         }
-        if (random.nextInt(20) == 0) {
+        if (random.nextInt(64) == 0) {
             world.addParticle(ParticleTypes.SOUL_FIRE_FLAME,
-                pos.getX() + random.nextDouble(), pos.getY() + random.nextDouble(),
+                pos.getX() + random.nextDouble(), surface,
                 pos.getZ() + random.nextDouble(), 0.0, 0.035, 0.0);
         }
     }
@@ -62,10 +69,13 @@ public abstract class PrismaticTideFluid extends FlowingFluid {
     @Override protected void entityInside(Level level, BlockPos pos, Entity entity,
                                           InsideBlockEffectApplier handler) {
         if (!(level instanceof ServerLevel server)) return;
-        if (server.getGameTime() % 3 == 0) {
+        long tick=server.getGameTime();
+        Long previous=LAST_CONTACT.put(entity,tick);
+        if (previous != null && previous.longValue()==tick) return;
+        if (tick % 5 == 0) {
             server.sendParticles(ParticleTypes.SOUL_FIRE_FLAME, entity.getX(),
-                entity.getY() + entity.getBbHeight() * 0.46, entity.getZ(),
-                8, 0.27, entity.getBbHeight() * 0.45, 0.27, 0.027);
+                entity.getY() + entity.getBbHeight() * 0.30, entity.getZ(),
+                3, 0.21, entity.getBbHeight() * 0.20, 0.21, 0.014);
         }
         if (server.getGameTime() % 20 == 0 && !entity.fireImmune()) {
             // Real burn damage without vanilla fire ticks (which render red flames).

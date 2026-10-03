@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""THE SIFT 0.5.2 dedicated 26.3 world generator.
+"""THE SIFT 0.5.3 dedicated 26.3 world generator.
 The look is an original interpretation of the user-provided Dungeons II references:
 roofless amplified cliffs, elongated deep rifts, unstable ridges and prismatic tide below.
 All files are plain data; no proprietary game assets are copied.
@@ -24,8 +24,12 @@ def fissure(name,width,scale,strength):
     centerline=ab(noise(name,scale,0.0))
     mask=clamp(add(width,mul(-1.0,centerline)),0.0,width)
     return mul(-strength,mask)
+main_distance=ab(noise("rift_network",.56,0.0))
+# Tributaries get shallower away from the main fault instead of making a
+# second equally-wide canyon system. Higher-frequency branches meet the trunk.
+branch_reach=clamp(mul(8.0,add(.28,mul(-1.0,main_distance))),0.0,1.0)
 rifts=add(fissure("rift_network",.100,.56,90.0),
-          fissure("rift_branches",.072,.70,62.0))
+          mul(branch_reach,fissure("rift_branches",.055,.70,62.0)))
 # Keep high plateaus, but give the fractures priority.
 meadow=mul(.39,noise("meadow_swell",.60,0.0))
 carapace=add(mul(.60,noise("carapace_ridge",.62,0.0)),
@@ -33,24 +37,42 @@ carapace=add(mul(.60,noise("carapace_ridge",.62,0.0)),
 biome_relief={"type":"minecraft:range_choice","input":"minecraft:overworld/temperature",
     "min_inclusive":-1000.0,"max_exclusive":-0.08,
     "when_in_range":meadow,"when_out_of_range":carapace}
-overhang=mul(.74,noise("overhang",.65,.34))
+overhang=add(mul(.90,noise("overhang",.65,.48)),
+             mul(.26,noise("wall_breakup",.78,.60)))
 surface_gradient={"type":"minecraft:gradient","axis":"y","tiling":"clamp_to_edge",
     "from_coordinate":-64,"to_coordinate":285,"from_value":4.10,"to_value":-4.05}
 fractured=add(add(surface_gradient,biome_relief),add(rifts,overhang))
-# Solid bed below every trench, open sky above it.
+# Local rock bridges: thin crossing bands with open space underneath, bounded
+# vertically so they cannot turn into a Nether roof. 3D noise roughens the arch.
+def minimum(a,b):return {"type":"minecraft:min","left":a,"right":b}
+def ygradient(a,b,lo,hi):return {"type":"minecraft:gradient","axis":"y",
+    "tiling":"clamp_to_edge","from_coordinate":a,"to_coordinate":b,
+    "from_value":lo,"to_value":hi}
+bridge_band=minimum(ygradient(46,70,-1.0,1.0),ygradient(82,110,1.0,-1.0))
+bridge_shape=add(bridge_band,mul(.52,noise("overhang",.65,.48)))
+bridge_crossing=mul(32.0,add(.045,mul(-1.0,ab(noise("bridge_paths",.65,0.0)))))
+bridge_zone=mul(12.0,add(.115,mul(-1.0,main_distance)))
+bridges=minimum(bridge_zone,minimum(bridge_crossing,bridge_shape))
+fractured={"type":"minecraft:max","left":fractured,"right":bridges}
+# Irregular impermeable substrate above the vanilla generator's deep lava
+# layer. Even the lowest floor must remain above Y=-54; tide fills the basin.
 floor={"type":"minecraft:gradient","axis":"y","tiling":"clamp_to_edge",
-       "from_coordinate":-62,"to_coordinate":-39,
-       "from_value":9.0,"to_value":-100.0}
+       "from_coordinate":-56,"to_coordinate":-30,
+       "from_value":10.0,"to_value":-10.0}
+floor=add(floor,mul(2.0,noise("basin_floor",.70,0.0)))
 density={"type":"minecraft:interpolated",
          "input":{"type":"minecraft:max","left":fractured,"right":floor},
          "cell_size_xz":4,"cell_size_y":8}
 for name,octave,amps in [
     ("rift_network",-8,[1.0,.65,.32,.17]),
-    ("rift_branches",-9,[1.0,.58,.31,.16]),
+    ("rift_branches",-7,[1.0,.58,.31,.16]),
     ("meadow_swell",-7,[1.0,.58,.28]),
     ("carapace_ridge",-6,[1.0,.75,.45]),
     ("sharp_cliffs",-5,[1.0,.55,.30]),
-    ("overhang",-5,[1.0,.75,.35])]:
+    ("overhang",-5,[1.0,.75,.35]),
+    ("wall_breakup",-4,[1.0,.55,.25]),
+    ("bridge_paths",-6,[1.0,.45,.20]),
+    ("basin_floor",-5,[1.0,.65,.30])]:
     put(Path("worldgen/noise")/(name+".json"),{
         "base_octave":octave,"octave_count":len(amps),"amplitude_modifiers":amps})
 put("worldgen/noise_settings/fractured.json",{
@@ -171,4 +193,4 @@ for name,sky,fog,water,features in [
 put("tags/fluid/prismatic_tide.json",{
     "values":["sift:prismatic_tide","sift:flowing_prismatic_tide"]})
 put("function/tide_test.mcfunction",None) if False else None
-print("Generated 0.5.2: connected canyons, solid fracture floor and two biome surfaces")
+print("Generated 0.5.3: main faults, tributaries, bounded arches and raised basin substrate")

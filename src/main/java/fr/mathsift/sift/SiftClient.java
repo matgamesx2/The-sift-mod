@@ -39,23 +39,28 @@ public final class SiftClient implements ClientModInitializer {
     /** Animated blue pixel flames when submerged, without any orange vanilla fire. */
     private static void renderBlueBurn(GuiGraphicsExtractor graphics, DeltaTracker delta) {
         Minecraft minecraft=Minecraft.getInstance();
-        if (!touchingTide(minecraft)) return;
+        if (!minecraft.options.getCameraType().isFirstPerson() ||
+            minecraft.player == null || minecraft.player.isSpectator() ||
+            !touchingTide(minecraft)) return;
         int width=minecraft.getWindow().getGuiScaledWidth();
         int height=minecraft.getWindow().getGuiScaledHeight();
         long time=minecraft.level.getGameTime();
-        int block=Math.max(5,width/42);
-        graphics.fill(0,height-7,width,height,0x642088FF);
+        int block=Math.max(3,width/80);
+        // Corner flames occupy at most 7% of the screen height; the center,
+        // crosshair and third-person camera remain unobstructed.
         for(int i=0;i<=width/block;i++) {
             int x=i*block;
+            double distance=Math.abs(x-width*.5)/(width*.5);
+            if (distance < .60) continue;
             double wave=Math.sin(i*.96+time*.26)+.4*Math.cos(i*1.73-time*.15);
-            int flame=Math.max(6,(int)(height*.11+height*.055*wave));
-            int edge=(int)(height*.08*(Math.abs(x-width*.5)/(width*.5)));
+            int flame=Math.max(2,(int)(height*.018+height*.009*wave));
+            int edge=(int)(height*.020*distance);
             int y=height-flame-edge;
-            int core=(i%3==0)?0x8841E8FF:0x753BAAFF;
-            graphics.fill(x,y+block*2,x+block,height,0x6B1761EB);
-            graphics.fill(x+block/4,y+block,x+block*3/4,y+block*2,core);
+            int core=(i%3==0)?0x6041E8FF:0x503BAAFF;
+            graphics.fill(x,y+block,x+block,height,0x451761EB);
+            graphics.fill(x+block/4,y,x+block*3/4,y+block,core);
             if ((i+time/4)%3==0)
-                graphics.fill(x+block/3,y,x+block*2/3,y+block,0xA882F5FF);
+                graphics.fill(x+block/3,y-block,x+block*2/3,y,0x7082F5FF);
         }
     }
 }

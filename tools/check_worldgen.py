@@ -12,11 +12,14 @@ assert cfg["material_rule"]=="sift:fractured"
 density=cfg["noise_router"]["final_density"]
 assert density["type"]=="minecraft:interpolated"
 assert density["input"]["type"]=="minecraft:max"
-assert density["input"]["right"]["from_value"]>=9.0
+assert density["input"]["right"]["left"]["from_coordinate"]==-56
+assert density["input"]["right"]["left"]["from_value"]>=9.0
 assert cfg["sea_level"] < 0
 assert "rift_branches" in json.dumps(density)
 assert "rift_network" in json.dumps(density)
 assert "overhang" in json.dumps(density)
+assert "bridge_paths" in json.dumps(density)
+assert "basin_floor" in json.dumps(density)
 assert (data/"worldgen/material_rule/fractured.json").exists()
 dimension=json.loads((data/"dimension/sift.json").read_text(encoding="utf-8"))
 assert dimension["generator"]["settings"]=="sift:fractured"
@@ -33,10 +36,14 @@ for biome in ("meadows","carapace"):
             assert (data/"worldgen/feature"/(name2+".json")).exists(),name2
 for tag in (data/"tags/fluid/prismatic_tide.json",):
     assert tag.exists()
-for name,size in (("still",64),("flow",64),("overlay",64)):
+for name,height in (("still",4096),("flow",4096),("overlay",128)):
     f=assets/"textures/block"/("prismatic_tide_"+name+".png")
     header=f.read_bytes()[:24]
     assert header[:8]==bytes.fromhex("89504e470d0a1a0a")
-    assert struct.unpack(">II",header[16:24])==(size,size)
+    assert struct.unpack(">II",header[16:24])==(128,height)
+    if name != "overlay":
+        metadata=json.loads(f.with_suffix(".png.mcmeta").read_text())
+        assert metadata["animation"]["interpolate"]
+        assert metadata["animation"]["height"]==128
 assert (assets/"textures/item/prismatic_tide_bucket.png").exists()
-print("PASS SIFT 0.5.1: registered tide textures, 2 biomes, rift density, and all decor refs")
+print("PASS SIFT 0.5.3: animated tide, 2 biomes, branching faults, bounded arches and basin floor")
