@@ -46,6 +46,7 @@ capture('02-natural-tide',x+.5,-14,z+.5,35,18)
 c.run('Pool floor','execute in sift:sift run fill 220 145 220 232 145 232 sift:carapace_shale')
 c.run('Pool walls','execute in sift:sift run fill 220 146 220 232 150 232 sift:fossil_rib hollow')
 c.run('Pool tide','execute in sift:sift run fill 221 146 221 231 149 231 sift:prismatic_tide_block')
+c.run('Open pool surface','execute in sift:sift run fill 221 150 221 231 150 231 minecraft:air')
 capture('03-tide-depth',226.5,153,218.5,0,35)
 c.run('First-person liquid contact','gamemode creative '+player)
 # HUD on: verifies the blue effect in first-person and the underwater tint.
