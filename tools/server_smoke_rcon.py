@@ -137,21 +137,23 @@ def main():
     print("PASS: no vanilla lava in 1,474,560 generated basin blocks",flush=True)
     # Exhaustive, non-destructive world scan: a legitimate dry shoreline plant
     # at Y=-23 is allowed. Only roots directly above natural tide are rejected.
-    c.run("Create vegetation scan counter","scoreboard objectives add sift_veg dummy")
-    c.run("Reset vegetation scan counter","scoreboard players set found sift_veg 0")
-    c.run("Reset vegetation scan completion","scoreboard players set scan_done sift_veg 0")
-    c.run("Scan all 36,864 waterline positions","execute in sift:sift run function sift:ci_vegetation_scan")
+    # Two temporary block flags in an already forced chunk avoid fake-player
+    # scoreboard semantics. Each small function must reach its final marker.
+    c.command("execute in sift:sift run fill 0 189 0 1 189 0 minecraft:air")
     import time
-    for attempt in range(50):
-        if "has 1 " in c.command("scoreboard players get scan_done sift_veg"):break
-        time.sleep(.1)
-    else:raise RuntimeError("Vegetation scan did not reach its final command")
-    result=c.command("scoreboard players get found sift_veg")
-    import re
-    count=re.search(r"has ([0-9]+) ",result)
-    if not count or int(count.group(1))!=0:
-        raise RuntimeError("Vegetation rooted on natural tide: "+result)
-    print("PASS: no trunks/reeds/sprouts/blooms directly above natural tide in 36,864 positions",flush=True)
+    for bx in range(0,192,32):
+        for bz in range(0,192,32):
+            c.command("execute in sift:sift run setblock 1 189 0 minecraft:air")
+            c.run(f"Scan waterline tile {bx},{bz}",
+                  f"execute in sift:sift run function sift:ci_vegetation_scan_{bx}_{bz}")
+            for attempt in range(50):
+                if block_test(1,189,0,"minecraft:diamond_block")[0]:break
+                time.sleep(.05)
+            else:raise RuntimeError(f"Vegetation scan tile {bx},{bz} did not reach its final command")
+    if block_test(0,189,0,"minecraft:redstone_block")[0]:
+        raise RuntimeError("Vegetation rooted directly on natural tide in generated chunks")
+    c.run("Remove vegetation scan flags","execute in sift:sift run fill 0 189 0 1 189 0 minecraft:air")
+    print("PASS: all 36 scan tiles completed; no trunks/reeds/sprouts/blooms directly above natural tide in 36,864 positions",flush=True)
     # Flow and living-entity damage, independently from the natural basin.
     c.run("Build fluid test bed","execute in sift:sift run fill 0 190 0 5 190 5 sift:carapace_shale")
     c.run("Place flowing source","execute in sift:sift run setblock 2 191 2 sift:prismatic_tide_block")
