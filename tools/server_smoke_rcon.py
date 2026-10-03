@@ -135,16 +135,17 @@ def main():
                 if "No blocks were filled" not in msg:
                     raise RuntimeError("LAVA SCAN FAILED at "+str((x,lo,z))+": "+msg)
     print("PASS: no vanilla lava in 1,474,560 generated basin blocks",flush=True)
-    # The former WORLD_SURFACE bug put trunks and crossed plants directly on
-    # the basin surface. Exhaustively reject these blocks at the waterline.
-    for x in range(0,192,32):
-        for z in range(0,192,32):
-            for vegetation in ("scarlet_trunk","meadow_reed","scarlet_sprout","soul_bloom"):
-                msg=c.command(f"execute in sift:sift run fill {x} -23 {z} {x+31} -23 {z+31} minecraft:air replace sift:{vegetation}")
-                if "No blocks were filled" not in msg:
-                    raise RuntimeError("Vegetation on basin surface: "+vegetation+": "+msg)
-    print("PASS: no trunks/reeds/sprouts/blooms at the natural basin waterline",flush=True)
-
+    # Exhaustive, non-destructive world scan: a legitimate dry shoreline plant
+    # at Y=-23 is allowed. Only roots directly above natural tide are rejected.
+    c.run("Create vegetation scan counter","scoreboard objectives add sift_veg dummy")
+    c.run("Reset vegetation scan counter","scoreboard players set found sift_veg 0")
+    c.run("Scan all 36,864 waterline positions","execute in sift:sift run function sift:ci_vegetation_scan")
+    result=c.command("scoreboard players get found sift_veg")
+    import re
+    count=re.search(r"has ([0-9]+) ",result)
+    if not count or int(count.group(1))!=0:
+        raise RuntimeError("Vegetation rooted on natural tide: "+result)
+    print("PASS: no trunks/reeds/sprouts/blooms directly above natural tide in 36,864 positions",flush=True)
     # Flow and living-entity damage, independently from the natural basin.
     c.run("Build fluid test bed","execute in sift:sift run fill 0 190 0 5 190 5 sift:carapace_shale")
     c.run("Place flowing source","execute in sift:sift run setblock 2 191 2 sift:prismatic_tide_block")

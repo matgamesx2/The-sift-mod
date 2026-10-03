@@ -31,6 +31,8 @@ jobs:
           python3 tools/generate_tide.py
           python3 tools/check_assets.py
           python3 tools/check_worldgen.py
+      - name: Install exhaustive dry-shore-aware vegetation scan
+        run: python3 tools/enable_server_vegetation_scan.py
       - name: Start Minecraft server and parse custom dimension registries
         shell: bash
         run: |
