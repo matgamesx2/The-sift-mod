@@ -1,12 +1,12 @@
 {
   "attributes": {
-    "minecraft:visual/sky_color": "#dfa9ee",
-    "minecraft:visual/fog_color": "#b98ac5"
+    "minecraft:visual/sky_color": "#b7a4c8",
+    "minecraft:visual/fog_color": "#847a99"
   },
   "carvers": [],
   "downfall": 0.0,
   "effects": {
-    "water_color": "#87daca",
+    "water_color": "#183a59",
     "grass_color": "#4dc9ac",
     "foliage_color": "#5ab7c8"
   },
@@ -23,6 +23,8 @@
     [],
     [
       "sift:scarlet_trees",
+      "sift:scarlet_tree_wides",
+      "sift:scarlet_tree_talls",
       "sift:meadow_reeds",
       "sift:scarlet_sprouts",
       "sift:soul_blooms"

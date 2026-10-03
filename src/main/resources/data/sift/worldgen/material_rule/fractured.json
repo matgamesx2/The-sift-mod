@@ -151,7 +151,7 @@
       "then_run": {
         "type": "minecraft:block",
         "result_state": {
-          "id": "sift:meadow_soil"
+          "id": "sift:carapace_shale"
         }
       }
     },

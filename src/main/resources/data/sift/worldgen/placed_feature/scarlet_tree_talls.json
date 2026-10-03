@@ -1,9 +1,9 @@
 {
-  "feature": "sift:carapace_glints",
+  "feature": "sift:scarlet_tree_tall",
   "placement": [
     {
-      "type": "minecraft:count",
-      "count": 2
+      "type": "minecraft:rarity_filter",
+      "chance": 32
     },
     {
       "type": "minecraft:in_square"
@@ -29,9 +29,10 @@
               0
             ],
             "blocks": [
-              "sift:carapace_stone",
-              "sift:carapace_shale",
-              "sift:sift_ochre"
+              "sift:teal_turf",
+              "sift:meadow_soil",
+              "sift:red_growth",
+              "sift:spore_mat"
             ]
           }
         ]

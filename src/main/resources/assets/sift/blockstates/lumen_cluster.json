@@ -1,7 +1,22 @@
 {
   "variants": {
-    "": {
-      "model": "sift:block/lumen_cluster"
-    }
+    "": [
+      {
+        "model": "sift:block/lumen_cluster",
+        "y": 0
+      },
+      {
+        "model": "sift:block/lumen_cluster",
+        "y": 90
+      },
+      {
+        "model": "sift:block/lumen_cluster",
+        "y": 180
+      },
+      {
+        "model": "sift:block/lumen_cluster",
+        "y": 270
+      }
+    ]
   }
 }

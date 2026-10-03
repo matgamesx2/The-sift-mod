@@ -1,7 +1,22 @@
 {
   "variants": {
-    "": {
-      "model": "sift:block/spore_mat"
-    }
+    "": [
+      {
+        "model": "sift:block/spore_mat",
+        "y": 0
+      },
+      {
+        "model": "sift:block/spore_mat",
+        "y": 90
+      },
+      {
+        "model": "sift:block/spore_mat",
+        "y": 180
+      },
+      {
+        "model": "sift:block/spore_mat",
+        "y": 270
+      }
+    ]
   }
 }

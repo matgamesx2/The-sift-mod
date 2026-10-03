@@ -1,7 +1,22 @@
 {
   "variants": {
-    "": {
-      "model": "sift:block/meadow_reed"
-    }
+    "": [
+      {
+        "model": "sift:block/meadow_reed",
+        "y": 0
+      },
+      {
+        "model": "sift:block/meadow_reed",
+        "y": 90
+      },
+      {
+        "model": "sift:block/meadow_reed",
+        "y": 180
+      },
+      {
+        "model": "sift:block/meadow_reed",
+        "y": 270
+      }
+    ]
   }
 }

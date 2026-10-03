@@ -1,7 +1,22 @@
 {
   "variants": {
-    "": {
-      "model": "sift:block/carapace_spire"
-    }
+    "": [
+      {
+        "model": "sift:block/carapace_spire",
+        "y": 0
+      },
+      {
+        "model": "sift:block/carapace_spire",
+        "y": 90
+      },
+      {
+        "model": "sift:block/carapace_spire",
+        "y": 180
+      },
+      {
+        "model": "sift:block/carapace_spire",
+        "y": 270
+      }
+    ]
   }
 }

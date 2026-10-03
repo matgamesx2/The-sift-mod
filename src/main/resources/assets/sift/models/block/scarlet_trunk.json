@@ -1,6 +1,8 @@
 {
-  "parent": "minecraft:block/cube_all",
+  "parent": "minecraft:block/cube_bottom_top",
   "textures": {
-    "all": "sift:block/scarlet_trunk"
+    "top": "sift:block/scarlet_trunk_top",
+    "bottom": "sift:block/scarlet_trunk",
+    "side": "sift:block/scarlet_trunk"
   }
 }

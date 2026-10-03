@@ -1,7 +1,22 @@
 {
   "variants": {
-    "": {
-      "model": "sift:block/carapace_shale"
-    }
+    "": [
+      {
+        "model": "sift:block/carapace_shale",
+        "y": 0
+      },
+      {
+        "model": "sift:block/carapace_shale",
+        "y": 90
+      },
+      {
+        "model": "sift:block/carapace_shale",
+        "y": 180
+      },
+      {
+        "model": "sift:block/carapace_shale",
+        "y": 270
+      }
+    ]
   }
 }

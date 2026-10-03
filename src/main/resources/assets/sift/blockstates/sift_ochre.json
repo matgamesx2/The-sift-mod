@@ -1,7 +1,22 @@
 {
   "variants": {
-    "": {
-      "model": "sift:block/sift_ochre"
-    }
+    "": [
+      {
+        "model": "sift:block/sift_ochre",
+        "y": 0
+      },
+      {
+        "model": "sift:block/sift_ochre",
+        "y": 90
+      },
+      {
+        "model": "sift:block/sift_ochre",
+        "y": 180
+      },
+      {
+        "model": "sift:block/sift_ochre",
+        "y": 270
+      }
+    ]
   }
 }

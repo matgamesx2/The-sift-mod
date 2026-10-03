@@ -1,7 +1,22 @@
 {
   "variants": {
-    "": {
-      "model": "sift:block/scarlet_trunk"
-    }
+    "": [
+      {
+        "model": "sift:block/scarlet_trunk",
+        "y": 0
+      },
+      {
+        "model": "sift:block/scarlet_trunk",
+        "y": 90
+      },
+      {
+        "model": "sift:block/scarlet_trunk",
+        "y": 180
+      },
+      {
+        "model": "sift:block/scarlet_trunk",
+        "y": 270
+      }
+    ]
   }
 }

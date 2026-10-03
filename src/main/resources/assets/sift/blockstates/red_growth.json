@@ -1,7 +1,22 @@
 {
   "variants": {
-    "": {
-      "model": "sift:block/red_growth"
-    }
+    "": [
+      {
+        "model": "sift:block/red_growth",
+        "y": 0
+      },
+      {
+        "model": "sift:block/red_growth",
+        "y": 90
+      },
+      {
+        "model": "sift:block/red_growth",
+        "y": 180
+      },
+      {
+        "model": "sift:block/red_growth",
+        "y": 270
+      }
+    ]
   }
 }
