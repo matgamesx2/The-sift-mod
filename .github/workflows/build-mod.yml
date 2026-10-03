@@ -20,13 +20,15 @@ jobs:
           gradle-version: '9.6.0'
       - name: Generate original textures, models and initial biome data
         run: python3 tools/generate_assets.py
+      - name: Validate generated resource files
+        run: python3 tools/check_assets.py
       - name: Compile with Fabric Loom
         run: gradle --no-daemon clean build
       - name: Publish compiled JAR
         uses: actions/upload-artifact@v4
         with:
-          name: the-sift-0.4.0-jar
-          path: build/libs/the-sift-0.4.0.jar
+          name: the-sift-0.4.1-jar
+          path: build/libs/the-sift-0.4.1.jar
           if-no-files-found: error
       - name: Save generated game assets to repository
         if: success()

@@ -50,8 +50,17 @@ for name in palette:
         model={"parent":"minecraft:block/cube_all","textures":{"all":"sift:block/"+name}}
     write(asset/"models/block"/(name+".json"),model)
     write(asset/"blockstates"/(name+".json"),{"variants":{"":{"model":"sift:block/"+name}}})
-    write(asset/"models/item"/(name+".json"),{"parent":"sift:block/"+name})
-    write(asset/"items"/(name+".json"),{"model":{"type":"minecraft:model","model":"sift:block/"+name}})
+    if name in flora:
+        # A crossed plant belongs in the world, but its held item must be a flat sprite.
+        # Rendering the crossed block model directly produces an oversized held quad.
+        write(asset/"models/item"/(name+".json"),
+              {"parent":"minecraft:item/generated","textures":{"layer0":"sift:block/"+name}})
+        write(asset/"items"/(name+".json"),
+              {"model":{"type":"minecraft:model","model":"sift:item/"+name}})
+    else:
+        write(asset/"models/item"/(name+".json"),{"parent":"sift:block/"+name})
+        write(asset/"items"/(name+".json"),
+              {"model":{"type":"minecraft:model","model":"sift:block/"+name}})
 for name in items:
     write(asset/"models/item"/(name+".json"),{"parent":"minecraft:item/generated","textures":{"layer0":"sift:item/"+name}})
     write(asset/"items"/(name+".json"),{"model":{"type":"minecraft:model","model":"sift:item/"+name}})
