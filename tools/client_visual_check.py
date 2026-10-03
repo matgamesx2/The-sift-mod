@@ -7,6 +7,9 @@ out=Path('run/visual');out.mkdir(parents=True,exist_ok=True)
 c=Rcon();c.authenticate()
 for attempt in range(180):
     if 'SiftVisualTest' in c.command('list'):break
+    log=Path('run/visual/client-console.log').read_text(errors='replace')
+    if 'Failed to create backend Vulkan' in log and 'Failed to create backend OpenGL' in log:
+        raise RuntimeError('Software graphics backend failed; inspect client-console.log')
     time.sleep(1)
 else:raise RuntimeError('Client did not join the offline test server')
 player='SiftVisualTest'

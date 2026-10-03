@@ -78,7 +78,7 @@ jobs:
         with:
           gradle-version: '9.6.0'
       - name: Install software OpenGL and capture tools
-        run: sudo apt-get update && sudo apt-get install -y xvfb libgl1-mesa-dri xdotool imagemagick
+        run: sudo apt-get update && sudo apt-get install -y xvfb libgl1-mesa-dri mesa-utils mesa-vulkan-drivers vulkan-tools xdotool imagemagick
       - name: Prepare client and server
         run: |
           python3 tools/generate_assets.py
@@ -93,8 +93,14 @@ jobs:
         env:
           DISPLAY: ':99'
           LIBGL_ALWAYS_SOFTWARE: '1'
+          MESA_GL_VERSION_OVERRIDE: '4.6'
+          MESA_GLSL_VERSION_OVERRIDE: '460'
+          SDL_VIDEO_DRIVER: x11
         run: |
-          Xvfb :99 -screen 0 1280x720x24 > /tmp/xvfb.log 2>&1 &
+          Xvfb :99 -screen 0 1280x720x24 -ac +extension GLX +render -noreset > /tmp/xvfb.log 2>&1 &
+          sleep 2
+          glxinfo -B > run/visual/opengl-info.log 2>&1 || true
+          vulkaninfo --summary > run/visual/vulkan-info.log 2>&1 || true
           gradle --no-daemon runServer --args='nogui' > run/visual/server-console.log 2>&1 &
           SERVER_PID=$!
           trap 'kill "$SERVER_PID" "$CLIENT_PID" 2>/dev/null || true' EXIT

@@ -1,52 +1,44 @@
-# THE SIFT — Fabric Minecraft 26.3
+# THE SIFT — Fabric 0.5.4
 
-**Independent fan-made mod, not an official Mojang/Minecraft Dungeons II release.**
+Mod pour Minecraft Java **26.3**, Java **25**, Fabric Loader **0.19.5+** et Fabric API **0.161.0+26.3**.
 
-This repository is the first compiled Fabric foundation. It registers 17 custom blocks and 4 new items, generates original placeholder textures and introduces two prototype Sift biomes in a separate dimension. This **initial CI branch** deliberately uses conservative vanilla terrain; the detailed terrain and fossils from the previous datapack prototype still need porting and in-game validation.
+La dimension `sift:sift` contient deux biomes, Meadows et Carapace, des failles principales et secondaires, des plateaux, des arches et des surplombs. Les 17 blocs, 4 objets, recettes et fonctions de téléportation sont conservés, ainsi que le véritable fluide personnalisé et son seau.
 
-## Compilation
-GitHub Actions: open **Actions → Build THE SIFT Fabric JAR → latest run → Artifacts**. Download `the-sift-0.4.1-jar` if the workflow completed successfully. Do not install a JAR if the workflow failed.
+## Changements 0.5.4
 
-## Requirements
-Minecraft Java 26.3, Java 25, Fabric Loader 0.19.5+, matching Fabric API. Source build requires Gradle 9.6 and Python 3 once to generate the placeholder assets.
+- Nouveaux matériaux originaux en 32 px, avec une palette commune : sols turquoise, schiste bleu-violet, végétation écarlate et fossiles ivoire. Faces supérieures et latérales distinctes, rotations des modèles pour varier les motifs.
+- Placement de chaque arbre, plante et décor conditionné à un sol solide autorisé. L'air au-dessus du liquide n'autorise plus la génération de végétation.
+- Trois silhouettes d'arbres utilisant les blocs et textures Sift, avec une densité réduite.
+- Sommets moins bombés, parois plus accidentées et corniches à différentes hauteurs. Le sous-sol des falaises est rocheux plutôt qu'un immense volume de sol turquoise.
+- Marée sombre et translucide : 32 images animées, reflets irisés déformés, coloration selon la profondeur et teinte sous-marine. Particules d'âme, lumière bleue, dégâts et flammes discrètes aux coins de l'écran conservés.
+- Fond rocheux imperméable au-dessus de la couche de lave vanilla.
 
-## Testing
-Use a *new creative world* and backup existing saves. Try `/give @s sift:teal_turf` or `/give @s sift:lumen_shard`. Experimental dimension: `/execute in sift:sift run tp @s 0 160 0` (creative/flying recommended).
+Les textures sont originales et s'inspirent des références Dungeons ; ce mod n'est pas une reproduction exacte des assets du jeu.
 
-All visual assets here are original placeholders rather than extracted Minecraft Dungeons II content.
+## Installation et exploration
 
-## 0.4.1 corrections
-- Three small plant items use flat inventory/held models rather than giant crossed world models.
-- Added single-player `/function sift:enter` and `/function sift:leave` test commands; enter saves your overworld position and uses slow falling. These commands are experimental. Back up the world first.
-- Automated checks verify JSON and generated item-model relationships before compiling.
-- Terrain is **still the conservative prototype**. The earlier 0.3.7 biome terrain, giant fossils and fully custom Sift plants have not yet been ported into the compiled mod. Do not confuse compilation success with runtime validation.
+Télécharger l'artefact `the-sift-0.5.4-jar` dans le dernier workflow **Build THE SIFT Fabric JAR** réussi. Placer le JAR dans `mods/`, avec Fabric API, en remplaçant l'ancienne version du mod.
 
-## 0.5.0 — Fractured worldgen & prismatic tide (experimental)
+- `/function sift:enter` : entrer dans Sift et mémoriser la position de retour.
+- `/function sift:leave` : revenir à la position mémorisée.
+- `/give @s sift:prismatic_tide_bucket` : obtenir le seau du fluide.
+- `/locate biome sift:carapace` : trouver Carapace depuis Sift.
 
-Based on user-supplied *Minecraft Dungeons II* visual references, the Sift now has original dedicated roofless density generation. Broad 2D rift noise excavates connected ravines; plateau noise gives amplified cliffs; 3D noise cuts overhangs. Meadows and Carapace are distinct in the surface material rules, with sparse plants, trees and fossil spires.
+**Tester le terrain dans un nouveau monde ou de nouveaux chunks.** Les chunks déjà générés gardent leurs formes et les anciennes plantes. Les nouvelles textures s'appliquent aussi aux blocs existants.
 
-A new **real flowing fluid** is registered as `sift:prismatic_tide` and generated at the base of the rifts. Its client uses original rainbow-colored textures. It releases SOUL / SOUL_FIRE_FLAME particles and causes periodic magic damage and normal burning on contact. **The player's standard orange burning overlay has not yet been recolored blue**; the visible blue fire is currently the emitted particles. Render/worldgen must be tested in Minecraft, not only CI.
+## Compilation et vérifications
 
-### Test on a new Creative world only
+Avec Python 3, Java 25 et Gradle 9.6 :
 
-- `/function sift:enter` — enters Sift from Overworld (singleplayer test).
-- `/function sift:leave` — returns to saved location.
-- `/give @s sift:prismatic_tide_bucket` — get the new real fluid.
-- `/locate biome sift:carapace` — locate the second biome (in Sift).
+```sh
+python3 tools/generate_assets.py
+python3 tools/generate_worldgen.py
+python3 tools/generate_tide.py
+python3 tools/check_assets.py
+python3 tools/check_worldgen.py
+gradle --no-daemon clean build
+```
 
-DO NOT open existing Sift saves with this major worldgen overhaul. Existing chunks cannot be regenerated without a new world. This is not yet a 1:1 reconstruction of Dungeons II; the hero biome trees, moving tides, giant fossil structures and blue player-burning overlay are still being developed.
+Les sources des textures sont dans `tools/art/` ; les scripts les installent et génèrent les modèles, animations et données du monde.
 
-## 0.5.1 — Deep fractures, quieter tides & blue soul burning
-
-- Replaced the mountain-heavy terrain with **two crossing long rift fields** and a reinforced bottom floor.
-- Reduced the prismatic tide level to Y=-23, so it fills crevasse bottoms instead of covering the world in lakes.
-- Changed the fluid textures from 16px checkerboard to seamless, calmer 64px iridescent patterns.
-- Removed vanilla fire ticks, which caused the orange/red burning animation. Contact now deals independent burn damage, emits blue soul flames around the entity, and shows an animated blue first-person screen overlay.
-- **Use a new test world:** Minecraft does not regenerate old chunks when the mod changes its noise rules.
-- GitHub server smoke tests validate world loading; **the canyon shapes and client overlay still require visual testing in Minecraft.**
-
-## 0.5.2 — Balanced fissures
-- Measured 0.5.1 with an actual fixed-seed Minecraft world: an overly broad rift mask removed 52 of 64 sampled columns at Y40. These are *measurement points*, not an estimate of the whole dimension.
-- Reduced both rift widths while increasing their cutting strength so that the center stays deep and edges form sharp cliffs. Rebalanced plateau density upward to keep significant land between rifts.
-- Automated RCON survey now **fails** if the fixed-seed 2D test is overcarved or has no sufficiently high plateaus.
-- Blue flame and pastel fluid fixes from 0.5.1 are retained.
+Le workflow serveur démarre Minecraft et vérifie de vrais chunks avec la graine 42819 : équilibre crevasses/plateaux, ciel ouvert, arches, substrat solide, absence de lave et de végétation à la surface des bassins, écoulement et dégâts du fluide sans feu orange. Le workflow client démarre une fenêtre Minecraft sous OpenGL logiciel, rejoint un serveur local et conserve les captures et journaux comme artefacts. Consulter son résultat avant de considérer la vérification visuelle comme réussie.

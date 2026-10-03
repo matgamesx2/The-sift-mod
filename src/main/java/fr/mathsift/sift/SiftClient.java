@@ -6,7 +6,9 @@ import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.color.block.BlockTintSources;
+import net.minecraft.client.color.block.BlockTintSource;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.block.FluidModel;
 import net.minecraft.client.resources.model.sprite.Material;
@@ -14,13 +16,34 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.util.ARGB;
 
 public final class SiftClient implements ClientModInitializer {
+    /** The shallow edge stays transparent; deep basins absorb warm reflected light.
+     * Scan only once per mesh tint evaluation, bounded to sixteen fluid cells. */
+    private static final BlockTintSource DEPTH_TINT = new BlockTintSource() {
+        @Override public int color(BlockState state) { return ARGB.opaque(0xFFFFFF); }
+        @Override public int colorInWorld(BlockState state, BlockAndTintGetter world, BlockPos pos) {
+            int depth=0;
+            var below=pos.mutable();
+            while (depth<16) {
+                var fluid=world.getFluidState(below).getType();
+                if (fluid!=SiftFluids.STILL && fluid!=SiftFluids.FLOWING) break;
+                depth++;
+                below.move(0,-1,0);
+            }
+            double absorption=Math.max(0,depth-1)/15.0;
+            int red=(int)(255-140*absorption);
+            int green=(int)(255-105*absorption);
+            int blue=(int)(255-65*absorption);
+            return ARGB.opaque((red<<16)|(green<<8)|blue);
+        }
+    };
+
     @Override public void onInitializeClient() {
         FluidRenderingRegistry.register(SiftFluids.STILL, SiftFluids.FLOWING,
             new FluidModel.Unbaked(
                 new Material(SiftMod.id("block/prismatic_tide_still")),
                 new Material(SiftMod.id("block/prismatic_tide_flow")),
                 new Material(SiftMod.id("block/prismatic_tide_overlay")),
-                BlockTintSources.constant(ARGB.opaque(0xFFFFFF))
+                DEPTH_TINT
             ));
         HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT,
             SiftMod.id("blue_soul_burn"), SiftClient::renderBlueBurn);
