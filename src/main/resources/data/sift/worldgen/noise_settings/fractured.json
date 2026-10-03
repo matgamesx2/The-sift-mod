@@ -33,7 +33,7 @@
               "tiling": "clamp_to_edge",
               "from_coordinate": -64,
               "to_coordinate": 285,
-              "from_value": 3.3,
+              "from_value": 4.1,
               "to_value": -4.05
             },
             "right": {
@@ -85,12 +85,12 @@
               "type": "minecraft:add",
               "left": {
                 "type": "minecraft:mul",
-                "left": -48.0,
+                "left": -90.0,
                 "right": {
                   "type": "minecraft:clamp",
                   "input": {
                     "type": "minecraft:add",
-                    "left": 0.23,
+                    "left": 0.1,
                     "right": {
                       "type": "minecraft:mul",
                       "left": -1.0,
@@ -106,17 +106,17 @@
                     }
                   },
                   "min": 0.0,
-                  "max": 0.23
+                  "max": 0.1
                 }
               },
               "right": {
                 "type": "minecraft:mul",
-                "left": -37.0,
+                "left": -62.0,
                 "right": {
                   "type": "minecraft:clamp",
                   "input": {
                     "type": "minecraft:add",
-                    "left": 0.16,
+                    "left": 0.072,
                     "right": {
                       "type": "minecraft:mul",
                       "left": -1.0,
@@ -132,7 +132,7 @@
                     }
                   },
                   "min": 0.0,
-                  "max": 0.16
+                  "max": 0.072
                 }
               }
             },
